@@ -4,6 +4,27 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
     Num(i16),
+    Str(String),
+    Binding(String),
+
+    Constant,
+
+    If,
+    Else,
+    For,
+    While,
+    In,
+
+    Public,
+    Protected,
+    Private,
+
+    LBracket,
+    RBracket,
+    LBrace,
+    RBrace,
+    LParenth,
+    RParenth,
 
     Plus,
     Minus,
