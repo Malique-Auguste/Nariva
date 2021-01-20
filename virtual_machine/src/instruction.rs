@@ -16,7 +16,13 @@ pub enum Opcode {
     Add64,
     Sub64,
     Mul64,
-    Div64
+    Div64,
+
+    Shift,
+    BitAnd,
+    BitOr,
+    BitXor,
+    BitNot
 }
 
 pub fn encode(opcode: Opcode, operand1: u8, operand2: u8, operand3: u8) -> u32 {
@@ -48,6 +54,13 @@ impl From<Opcode> for u8 {
             Opcode::Sub64 => 11,
             Opcode::Mul64 => 12,
             Opcode::Div64 => 13,
+
+            Opcode::Shift => 14, 
+            
+            Opcode::BitAnd => 15,
+            Opcode::BitOr => 16,
+            Opcode::BitXor => 17,
+            Opcode::BitNot => 18,
         }
     }
 }
@@ -71,6 +84,12 @@ impl From<u8> for Opcode {
             11 => Opcode::Sub64,
             12 => Opcode::Mul64,
             13 => Opcode::Div64,
+
+            14 => Opcode::Shift,
+            15 => Opcode::BitAnd,
+            16 => Opcode::BitOr,
+            17 => Opcode::BitXor,
+            18 => Opcode::BitNot,
             
             _ => Opcode::Illegal,
         }

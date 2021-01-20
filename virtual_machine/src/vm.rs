@@ -62,7 +62,6 @@ impl Machine {
                     self.stack.push((num2 as f32 + num1 as f32) as u32)
                 }
             },
-
             Opcode::Sub32 => {
                 let [num1, num2] = self.pop_2_u32();
                 if operand3 == 0 {
@@ -75,7 +74,6 @@ impl Machine {
                     self.stack.push((num2 as f32 - num1 as f32) as u32)
                 }
             },
-
             Opcode::Mul32 => {
                 let [num1, num2] = self.pop_2_u32();
                 if operand3 == 0 {
@@ -88,7 +86,6 @@ impl Machine {
                     self.stack.push((num2 as f32 - num1 as f32) as u32)
                 }
             },
-
             Opcode::Div32 => {
                 let [num1, num2] = self.pop_2_u32();
                 if operand3 == 0 {
@@ -115,7 +112,6 @@ impl Machine {
                 }
                 
             },
-
             Opcode::Sub64 => {
                 let [num1, num2] = self.pop_2_u64();
                 if operand3 == 0 {
@@ -128,7 +124,6 @@ impl Machine {
                     self.stack.append(&mut (((num2 as f64 - num1 as f64) as u64).split_smaller().into()));
                 }
             },
-
             Opcode::Mul64 => {
                 let [num1, num2] = self.pop_2_u64();
                 if operand3 == 0 {
@@ -141,7 +136,6 @@ impl Machine {
                     self.stack.append(&mut (((num2 as f64 * num1 as f64) as u64).split_smaller().into()));
                 }
             },
-
             Opcode::Div64 => {
                 let [num1, num2] = self.pop_2_u64();
                 if operand3 == 0 {
@@ -153,6 +147,27 @@ impl Machine {
                 else {
                     self.stack.append(&mut (((num2 as f64 / num1 as f64) as u64).split_smaller().into()));
                 }
+            },
+
+            Opcode::Shift => {
+                if operand3 == 0 {
+                    self.registers[operand1 as usize] = self.registers[operand1 as usize] << self.registers[operand2 as usize];
+                }
+                else {
+                    self.registers[operand1 as usize] = self.registers[operand1 as usize] << operand2;
+                }
+            },
+            Opcode::BitAnd => {
+                self.registers[operand1 as usize] = self.registers[operand1 as usize] & self.registers[operand2 as usize];
+            },
+            Opcode::BitOr => {
+                self.registers[operand1 as usize] = self.registers[operand1 as usize] | self.registers[operand2 as usize];
+            },
+            Opcode::BitXor => {
+                self.registers[operand1 as usize] = self.registers[operand1 as usize] ^ self.registers[operand2 as usize];
+            },
+            Opcode::BitNot => {
+                self.registers[operand1 as usize] = !self.registers[operand1 as usize];
             }
         }
     }

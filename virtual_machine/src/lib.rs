@@ -28,16 +28,95 @@ mod vm_tests {
     }
 
     #[test]
-    fn test_push_pop() {
+    fn push_pop() {
         let program = vec![
             encode(Opcode::Push, 0, 100, 0),
             encode(Opcode::Push, 0, 50, 0),
             encode(Opcode::PopR, 0, 0, 0),
             encode(Opcode::PushR, 0, 0, 0),
-            encode(Opcode::Pop, 0, 100, 0),
+            encode(Opcode::Pop, 0, 0, 0),
         ];
 
         let mut vm = Machine::new(program);
         assert_eq!(100, vm.run());
+    }
+
+    #[test]
+    fn bit_operations() {
+        let program = vec![
+            encode(Opcode::Push, 0, 15, 0),
+            encode(Opcode::PopR, 0, 0, 0),
+            encode(Opcode::Push, 0, 2, 0),
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::Shift, 0, 1, 0),
+            encode(Opcode::PushR, 0, 0, 0),
+        ];
+
+        let mut vm = Machine::new(program);
+        assert_eq!(60, vm.run());
+
+        let program = vec![
+            encode(Opcode::Push, 0, 240, 0),
+            encode(Opcode::PopR, 0, 0, 0),
+            encode(Opcode::Push, 0, 15, 0),
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::BitAnd, 0, 1, 0),
+            encode(Opcode::PushR, 0, 0, 0),
+        ];
+
+        let mut vm = Machine::new(program);
+        assert_eq!(0, vm.run());
+
+        let program = vec![
+            encode(Opcode::Push, 0, 240, 0),
+            encode(Opcode::PopR, 0, 0, 0),
+            encode(Opcode::Push, 0, 15, 0),
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::BitOr, 0, 1, 0),
+            encode(Opcode::PushR, 0, 0, 0),
+        ];
+
+        let mut vm = Machine::new(program);
+        assert_eq!(255, vm.run());
+
+        let program = vec![
+            encode(Opcode::Push, 0, 246, 0),
+            encode(Opcode::PopR, 0, 0, 0),
+            encode(Opcode::Push, 0, 111, 0),
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::BitXor, 0, 1, 0),
+            encode(Opcode::PushR, 0, 0, 0),
+        ];
+
+        let mut vm = Machine::new(program);
+        assert_eq!(153, vm.run());
+
+        let program = vec![
+            encode(Opcode::Push, 0, 191, 0),
+            encode(Opcode::Push, 0, 189, 0),
+            encode(Opcode::Push, 0, 240, 0),
+            encode(Opcode::Push, 0, 255, 0),
+
+            encode(Opcode::PopR, 0, 0, 0),
+            encode(Opcode::Shift, 0, 8, 1),
+            
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::BitOr, 0, 1, 0),
+            encode(Opcode::Shift, 0, 8, 1),
+            
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::BitOr, 0, 1, 0),
+            encode(Opcode::Shift, 0, 8, 1),
+            
+            encode(Opcode::PopR, 1, 0, 0),
+            encode(Opcode::BitOr, 0, 1, 0),
+
+            encode(Opcode::BitNot, 0, 0, 0),
+            encode(Opcode::PushR, 0, 0, 0),
+            
+        ];
+
+        let mut vm = Machine::new(program);
+        assert_eq!(1_000_000, vm.run());
     }
 }
