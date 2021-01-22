@@ -4,9 +4,7 @@ pub enum Opcode {
     Halt,
 
     Push,
-    PushR,
     Pop,
-    PopR,
 
     Add32,
     Sub32,
@@ -25,15 +23,6 @@ pub enum Opcode {
     BitNot
 }
 
-pub fn encode(opcode: Opcode, operand1: u8, operand2: u8, operand3: u8) -> u32 {
-    u32::from_be_bytes([opcode.into(), operand1, operand2, operand3])
-}
-
-pub fn decode(instruction: u32) -> (Opcode, u8, u8, u8) {
-    let [opcode, operand1, operand2, operand3] = instruction.to_be_bytes();
-    (opcode.into(), operand1, operand2, operand3)
-}
-
 impl From<Opcode> for u8 {
     fn from(o: Opcode) -> u8 {
         match o {
@@ -41,26 +30,24 @@ impl From<Opcode> for u8 {
             Opcode::Halt => 1,
 
             Opcode::Push => 2,
-            Opcode::PushR => 3,
-            Opcode::Pop => 4,
-            Opcode::PopR => 5,
+            Opcode::Pop => 3,
 
-            Opcode::Add32 => 6,
-            Opcode::Sub32 => 7,
-            Opcode::Mul32 => 8,
-            Opcode::Div32 => 9,
+            Opcode::Add32 => 4,
+            Opcode::Sub32 => 5,
+            Opcode::Mul32 => 6,
+            Opcode::Div32 => 7,
 
-            Opcode::Add64 => 10,
-            Opcode::Sub64 => 11,
-            Opcode::Mul64 => 12,
-            Opcode::Div64 => 13,
+            Opcode::Add64 => 8,
+            Opcode::Sub64 => 9,
+            Opcode::Mul64 => 10,
+            Opcode::Div64 => 11,
 
-            Opcode::Shift => 14, 
+            Opcode::Shift => 12, 
             
-            Opcode::BitAnd => 15,
-            Opcode::BitOr => 16,
-            Opcode::BitXor => 17,
-            Opcode::BitNot => 18,
+            Opcode::BitAnd => 13,
+            Opcode::BitOr => 14,
+            Opcode::BitXor => 15,
+            Opcode::BitNot => 16,
         }
     }
 }
@@ -71,25 +58,23 @@ impl From<u8> for Opcode {
             1 => Opcode::Halt,
 
             2 => Opcode::Push,
-            3 => Opcode::PushR,
-            4 => Opcode::Pop,
-            5 => Opcode::PopR,
+            3 => Opcode::Pop,
 
-            6 => Opcode::Add32,
-            7 => Opcode::Sub32,
-            8 => Opcode::Mul32,
-            9 => Opcode::Div32,
+            4 => Opcode::Add32,
+            5 => Opcode::Sub32,
+            6 => Opcode::Mul32,
+            7 => Opcode::Div32,
 
-            10 => Opcode::Add64,
-            11 => Opcode::Sub64,
-            12 => Opcode::Mul64,
-            13 => Opcode::Div64,
+            8 => Opcode::Add64,
+            9 => Opcode::Sub64,
+            10 => Opcode::Mul64,
+            11 => Opcode::Div64,
 
-            14 => Opcode::Shift,
-            15 => Opcode::BitAnd,
-            16 => Opcode::BitOr,
-            17 => Opcode::BitXor,
-            18 => Opcode::BitNot,
+            12 => Opcode::Shift,
+            13 => Opcode::BitAnd,
+            14 => Opcode::BitOr,
+            15 => Opcode::BitXor,
+            16 => Opcode::BitNot,
             
             _ => Opcode::Illegal,
         }

@@ -7,15 +7,6 @@ mod vm_tests {
     use crate::vm::*;
 
     #[test]
-    fn instruction_conversion() {
-        assert_eq!(2, u8::from(Opcode::from(2)));
-        assert_eq!(Opcode::Illegal, 0.into());
-
-        let instruction = encode(Opcode::Pop, 99, 12, 108);
-        assert_eq!((Opcode::Pop, 99, 12, 108), decode(instruction));
-    }
-
-    #[test]
     fn split_trait() {
         let num:u16 = 5_123;
         assert_eq!(num, u16::join((num.split()[0], num.split()[1])));
@@ -29,20 +20,26 @@ mod vm_tests {
 
     #[test]
     fn push_pop() {
-        let program = vec![
-            encode(Opcode::Push, 0, 100, 0),
-            encode(Opcode::Push, 0, 50, 0),
-            encode(Opcode::PopR, 0, 0, 0),
-            encode(Opcode::PushR, 0, 0, 0),
-            encode(Opcode::Pop, 0, 0, 0),
-        ];
+        let program: Vec<u8> = [HEADER.to_vec(), vec![
+            Opcode::Push.into(), 0, 0, 100,
+            Opcode::Push.into(), 0, 0, 50,
+            Opcode::Pop.into(), 1, 0,
+            Opcode::Push.into(), 1, 0,
+            Opcode::Pop.into(), 0,
+        ]].concat();
 
         let mut vm = Machine::new(program);
         assert_eq!(100, vm.run());
     }
 
+    /*
     #[test]
     fn bit_operations() {
+        let program = vec![
+            Opcode::Push.into(), 0, 0, 15,
+            Opcode::Pop.into(), 1, 0,
+
+        ];
         let program = vec![
             encode(Opcode::Push, 0, 15, 0),
             encode(Opcode::PopR, 0, 0, 0),
@@ -119,4 +116,5 @@ mod vm_tests {
         let mut vm = Machine::new(program);
         assert_eq!(1_000_000, vm.run());
     }
+    */
 }
