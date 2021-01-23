@@ -21,31 +21,29 @@ mod vm_tests {
     #[test]
     fn push_pop() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 0, 100,
-            Opcode::Push.into(), 0, 0, 50,
-            Opcode::Pop.into(), 1, 0,
-            Opcode::Push.into(), 1, 0,
-            Opcode::Pop.into(), 0,
+            Opcode::Push.into(), 3, 255, 255, 255, 255, 255, 255, 255, 255,
+            Opcode::Push.into(), 0, 1,
+            Opcode::Pop.into()
         ]].concat();
 
         let mut vm = Machine::new(program);
-        assert_eq!(100, vm.run());
+        assert_eq!(u64::MAX, vm.run());
     }
 
     #[test]
     fn math_u() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 0, 255,
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 255,
+            Opcode::Push.into(), 0, 255,
             Opcode::MulU.into(),
 
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 255,
             Opcode::DivU.into(),
             
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 255,
             Opcode::SubU.into(),
             
-            Opcode::Push.into(), 0, 0, 1,
+            Opcode::Push.into(), 0, 1,
             Opcode::AddU.into(),
         ]].concat();
 
@@ -56,17 +54,17 @@ mod vm_tests {
     #[test]
     fn math_i() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 0, 255,
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 255,
+            Opcode::Push.into(), 0, 255,
             Opcode::MulI.into(),
 
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 255,
             Opcode::DivI.into(),
             
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 255,
             Opcode::SubI.into(),
             
-            Opcode::Push.into(), 0, 0, 1,
+            Opcode::Push.into(), 0, 1,
             Opcode::AddI.into(),
         ]].concat();
 
@@ -77,52 +75,46 @@ mod vm_tests {
     #[test]
     fn math_f() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 0, 255,
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 3, 64, 111, 224, 0, 0, 0, 0, 0,        //255
+            Opcode::Push.into(), 3, 64, 111, 224, 0, 0, 0, 0, 0,
             Opcode::MulF.into(),
 
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 3, 64, 127, 224, 0, 0, 0, 0, 0,        //510
             Opcode::DivF.into(),
             
-            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 3, 64, 95, 192, 0, 0, 0, 0, 0,         //127
             Opcode::SubF.into(),
             
-            Opcode::Push.into(), 0, 0, 1,
+            Opcode::Push.into(), 3, 63, 240, 0, 0, 0, 0, 0, 0,
             Opcode::AddF.into(),
         ]].concat();
 
         let mut machine = Machine::new(program);
-        assert_eq!(1.0, f64::from_be_bytes(machine.run().to_be_bytes()))
+        assert_eq!(1.5, f64::from_be_bytes(machine.run().to_be_bytes()))
     }
     
     #[test]
     fn bit_operations() {
         let program = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 0, 240,
-            Opcode::Pop.into(), 1, 0,
-            Opcode::Shift.into(), 3, 0, 4,
+            Opcode::Push.into(), 0, 15,
+            Opcode::Push.into(), 0, 4,
+            Opcode::Shift.into(), 0,
 
-            Opcode::Push.into(), 0, 0, 82,
-            Opcode::Pop.into(), 1, 1,
-            Opcode::BitAnd.into(), 0, 1,
-            
-            Opcode::Push.into(), 0, 0, 167,
-            Opcode::Pop.into(), 1, 1,
-            Opcode::BitAnd.into(), 0, 1,
-            
-            Opcode::BitNot.into(), 0,
-            Opcode::BitNot.into(), 0,
-            
-            Opcode::Push.into(), 0, 0, 170,
-            Opcode::Pop.into(), 1, 1,
-            Opcode::BitXor.into(), 0, 1,
+            Opcode::Push.into(), 0, 15,
+            Opcode::BitAnd.into(),
 
-            Opcode::Push.into(), 1, 0
-            
+            Opcode::Push.into(), 0, 10,
+            Opcode::BitXor.into(),
+
+            Opcode::Push.into(), 0, 5,
+            Opcode::BitOr.into(),
+
+            Opcode::BitNot.into(),
+            Opcode::BitNot.into(),            
         ]].concat();
 
         let mut machine = Machine::new(program);
-        assert_eq!(168, machine.run())
+        assert_eq!(15, machine.run())
     }
     
 }

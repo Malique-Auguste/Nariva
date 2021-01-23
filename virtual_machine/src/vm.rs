@@ -7,7 +7,6 @@ pub struct Machine {
     pub program_address: usize,
 
     pub stack: Vec<u64>,
-    registers: [u64; 256],
 
     zero_flag: bool,
     sign_flag: bool
@@ -19,7 +18,6 @@ impl Machine {
             program,
             program_address: 0,
             stack: Vec::new(),
-            registers: [0; 256],
             zero_flag: true,
             sign_flag: true,
         }
@@ -55,30 +53,35 @@ impl Machine {
         let opcode = self.next_8_bits().into();
         println!("{:?}, {}", opcode, self.program_address);
         match opcode {
-            Opcode::Illegal => unimplemented!("program address: {}, {:?}, {:?}", self.program_address, self.stack, self.registers),
-            Opcode::Halt => unimplemented!("program address: {}, {:?}, {:?}", self.program_address, self.stack, self.registers),
+            Opcode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
+            Opcode::Halt => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
 
             Opcode::Push => {
-                if self.next_8_bits() == 0 {
+                let option = self.next_8_bits();
+                if option == 0 {
+                    //pushes u8
+                    let num = self.next_8_bits() as u64;
+                    self.stack.push(num);
+                }
+                else if option == 1 {
+                    //pushes u16
                     let num = self.next_16_bits() as u64;
                     self.stack.push(num);
                 }
+                else if option == 2 {
+                    //pushes u32
+                    let num = (self.next_16_bits() as u64) << 16 | (self.next_16_bits() as u64);
+                    self.stack.push(num);
+                }
                 else {
-                    let index = self.next_8_bits() as usize;
-                    self.stack.push(self.registers[index]);
+                    //pushes u64
+                    let num = (self.next_16_bits() as u64) << 48 | (self.next_16_bits() as u64) << 32 | (self.next_16_bits() as u64) << 16 | self.next_16_bits() as u64;
+                    self.stack.push(num);
                 }
             },
 
             Opcode::Pop => {
-                if self.next_8_bits() == 0 {
-                    self.stack.pop();
-                }
-                else {
-                    self.registers[self.next_8_bits() as usize] = match self.stack.pop(){
-                        Some(v) => v,
-                        None => unimplemented!(),
-                    };
-                }
+                self.stack.pop();
             },
 
             Opcode::AddU => {
@@ -141,40 +144,32 @@ impl Machine {
             },
 
             Opcode::Shift => {
-                let option = self.next_8_bits();
-                if option == 0 {
-                    let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
-                    self.registers[index1 as usize] = self.registers[index1 as usize] << self.registers[index2 as usize];
-                }
-                else if option == 1 {
-                    let [index, shift_amount] = [self.next_8_bits(), self.next_8_bits()];
-                    self.registers[index as usize] = self.registers[index as usize] << shift_amount;
-                }
-
-                else if option == 2 {
-                    let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
-                    self.registers[index1 as usize] = self.registers[index1 as usize] >> self.registers[index2 as usize];
+                let [num1, num2] = self.double_pop();
+                if self.next_8_bits() == 0 {
+                    self.stack.push(num2 << num1)
                 }
                 else {
-                    let [index, shift_amount] = [self.next_8_bits(), self.next_8_bits()];
-                    self.registers[index as usize] = self.registers[index as usize] >> shift_amount;
+                    self.stack.push(num2 >> num1)
                 }
             },
             Opcode::BitAnd => {
-                let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
-                self.registers[index1 as usize] = self.registers[index1 as usize] & self.registers[index2 as usize];
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 & num1);
             },
             Opcode::BitOr => {
-                let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
-                self.registers[index1 as usize] = self.registers[index1 as usize] | self.registers[index2 as usize];
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 | num1);
             },
             Opcode::BitXor => {
-                let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
-                self.registers[index1 as usize] = self.registers[index1 as usize] ^ self.registers[index2 as usize];
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 ^ num1);
             },
             Opcode::BitNot => {
-                let index = self.next_8_bits();
-                self.registers[index as usize] = !self.registers[index as usize];
+                let num = match self.stack.pop() {
+                    Some(x) => x,
+                    None => unimplemented!()
+                };
+                self.stack.push(!num)
             }
         }
     }
