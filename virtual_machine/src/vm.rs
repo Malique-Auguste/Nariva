@@ -6,8 +6,8 @@ pub struct Machine {
     pub program: Vec<u8>,
     pub program_address: usize,
 
-    pub stack: Vec<u32>,
-    registers: [u32; 32],
+    pub stack: Vec<u64>,
+    registers: [u64; 256],
 
     zero_flag: bool,
     sign_flag: bool
@@ -19,7 +19,7 @@ impl Machine {
             program,
             program_address: 0,
             stack: Vec::new(),
-            registers: [0; 32],
+            registers: [0; 256],
             zero_flag: true,
             sign_flag: true,
         }
@@ -35,7 +35,7 @@ impl Machine {
         (self.program[self.program_address - 1] as u16) << 8 | self.program[self.program_address] as u16
     }
 
-    pub fn run(&mut self) -> u32 {
+    pub fn run(&mut self) -> u64 {
         if self.is_nariva_file() {
             self.program_address = HEADER.len() - 1;
             loop {
@@ -47,19 +47,20 @@ impl Machine {
             }
         }
         else {
-            u32::MAX
+            u64::MAX
         }
     }
 
     pub fn execute_instruction(&mut self) {
         let opcode = self.next_8_bits().into();
+        println!("{:?}, {}", opcode, self.program_address);
         match opcode {
             Opcode::Illegal => unimplemented!("program address: {}, {:?}, {:?}", self.program_address, self.stack, self.registers),
             Opcode::Halt => unimplemented!("program address: {}, {:?}, {:?}", self.program_address, self.stack, self.registers),
 
             Opcode::Push => {
                 if self.next_8_bits() == 0 {
-                    let num = self.next_16_bits() as u32;
+                    let num = self.next_16_bits() as u64;
                     self.stack.push(num);
                 }
                 else {
@@ -80,120 +81,83 @@ impl Machine {
                 }
             },
 
-            Opcode::Add32 => {
-                let [num1, num2] = self.pop_2_u32();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.push(num2 + num1)
-                }
-                else if option == 1 {
-                    self.stack.push((num2 as i32 + num1 as i32) as u32)
-                }
-                else {
-                    self.stack.push((num2 as f32 + num1 as f32) as u32)
-                }
+            Opcode::AddU => {
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 + num1)
             },
-            Opcode::Sub32 => {
-                let [num1, num2] = self.pop_2_u32();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.push(num2 - num1)
-                }
-                else if option == 1 {
-                    self.stack.push((num2 as i32 - num1 as i32) as u32)
-                }
-                else {
-                    self.stack.push((num2 as f32 - num1 as f32) as u32)
-                }
+            Opcode::SubU => {
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 - num1)
             },
-            Opcode::Mul32 => {
-                let [num1, num2] = self.pop_2_u32();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.push(num2 * num1)
-                }
-                else if option == 1 {
-                    self.stack.push((num2 as i32 * num1 as i32) as u32)
-                }
-                else {
-                    self.stack.push((num2 as f32 * num1 as f32) as u32)
-                }
+            Opcode::MulU => {
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 * num1)
             },
-            Opcode::Div32 => {
-                let [num1, num2] = self.pop_2_u32();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.push(num2 / num1)
-                }
-                else if option == 1 {
-                    self.stack.push((num2 as i32 / num1 as i32) as u32)
-                }
-                else {
-                    self.stack.push((num2 as f32 / num1 as f32) as u32)
-                }
+            Opcode::DivU => {
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 / num1)
             },
 
-            Opcode::Add64 => {
-                let [num1, num2] = self.pop_2_u64();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.append(&mut ((num2 + num1).split_smaller().into()));
-                }
-                else if option == 1 {
-                    self.stack.append(&mut (((num2 as i64 + num1 as i64) as u64).split_smaller().into()));
-                }
-                else {
-                    self.stack.append(&mut (((num2 as f64 + num1 as f64) as u64).split_smaller().into()));
-                }
+            Opcode::AddI => {
+                let [num1, num2] = self.double_pop();
+                let result = i64::from_be_bytes(num2.to_be_bytes()) + i64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::Sub64 => {
-                let [num1, num2] = self.pop_2_u64();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.append(&mut ((num2 - num1).split_smaller().into()));
-                }
-                else if option == 1 {
-                    self.stack.append(&mut (((num2 as i64 - num1 as i64) as u64).split_smaller().into()));
-                }
-                else {
-                    self.stack.append(&mut (((num2 as f64 - num1 as f64) as u64).split_smaller().into()));
-                }
+            Opcode::SubI => {
+                let [num1, num2] = self.double_pop();
+                let result = i64::from_be_bytes(num2.to_be_bytes()) - i64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::Mul64 => {
-                let [num1, num2] = self.pop_2_u64();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.append(&mut ((num2 * num1).split_smaller().into()));
-                }
-                else if option == 1 {
-                    self.stack.append(&mut (((num2 as i64 * num1 as i64) as u64).split_smaller().into()));
-                }
-                else {
-                    self.stack.append(&mut (((num2 as f64 * num1 as f64) as u64).split_smaller().into()));
-                }
+            Opcode::MulI => {
+                let [num1, num2] = self.double_pop();
+                let result = i64::from_be_bytes(num2.to_be_bytes()) * i64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::Div64 => {
-                let [num1, num2] = self.pop_2_u64();
-                let option = self.next_8_bits();
-                if option == 0 {
-                    self.stack.append(&mut ((num2 / num1).split_smaller().into()));
-                }
-                else if option == 1 {
-                    self.stack.append(&mut (((num2 as i64 / num1 as i64) as u64).split_smaller().into()));
-                }
-                else {
-                    self.stack.append(&mut (((num2 as f64 / num1 as f64) as u64).split_smaller().into()));
-                }
+            Opcode::DivI => {
+                let [num1, num2] = self.double_pop();
+                let result = i64::from_be_bytes(num2.to_be_bytes()) / i64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+            },
+
+            Opcode::AddF => {
+                let [num1, num2] = self.double_pop();
+                let result = f64::from_be_bytes(num2.to_be_bytes()) + f64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+            },
+            Opcode::SubF => {
+                let [num1, num2] = self.double_pop();
+                let result = f64::from_be_bytes(num2.to_be_bytes()) - f64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+            },
+            Opcode::MulF => {
+                let [num1, num2] = self.double_pop();
+                let result = f64::from_be_bytes(num2.to_be_bytes()) * f64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+            },
+            Opcode::DivF => {
+                let [num1, num2] = self.double_pop();
+                let result = f64::from_be_bytes(num2.to_be_bytes()) / f64::from_be_bytes(num1.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
 
             Opcode::Shift => {
-                if self.next_8_bits() == 0 {
+                let option = self.next_8_bits();
+                if option == 0 {
                     let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
                     self.registers[index1 as usize] = self.registers[index1 as usize] << self.registers[index2 as usize];
                 }
-                else {
+                else if option == 1 {
                     let [index, shift_amount] = [self.next_8_bits(), self.next_8_bits()];
                     self.registers[index as usize] = self.registers[index as usize] << shift_amount;
+                }
+
+                else if option == 2 {
+                    let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
+                    self.registers[index1 as usize] = self.registers[index1 as usize] >> self.registers[index2 as usize];
+                }
+                else {
+                    let [index, shift_amount] = [self.next_8_bits(), self.next_8_bits()];
+                    self.registers[index as usize] = self.registers[index as usize] >> shift_amount;
                 }
             },
             Opcode::BitAnd => {
@@ -209,51 +173,23 @@ impl Machine {
                 self.registers[index1 as usize] = self.registers[index1 as usize] ^ self.registers[index2 as usize];
             },
             Opcode::BitNot => {
-                let [index1, index2] = [self.next_8_bits(), self.next_8_bits()];
-                self.registers[index1 as usize] = !self.registers[index2 as usize];
+                let index = self.next_8_bits();
+                self.registers[index as usize] = !self.registers[index as usize];
             }
         }
     }
 
-    pub fn pop_2_u32(&mut self) -> [u32; 2] {
+    pub fn double_pop(&mut self) -> [u64; 2] {
         [
             match self.stack.pop() {
                 Some(x) => x,
                 None => unimplemented!()
             },
             match self.stack.pop() {
-                Some(x) => x,
+                Some(y) => y,
                 None => unimplemented!()
             }
         ]
-    }
-
-    pub fn pop_2_u64(&mut self) -> [u64; 2] {
-        let num1 = {
-            (match self.stack.pop() {
-                Some(x) => x as u64,
-                None => unimplemented!()
-            })
-            |
-            (match self.stack.pop() {
-                Some(x) => (x as u64) << 32,
-                None => unimplemented!()
-            })
-        };
-
-        let num2 = {
-            (match self.stack.pop() {
-                Some(x) => x as u64,
-                None => unimplemented!()
-            })
-            |
-            (match self.stack.pop() {
-                Some(x) => (x as u64) << 32,
-                None => unimplemented!()
-            })
-        };
-
-        [num1, num2]
     }
 
     pub fn is_nariva_file(&self) -> bool {

@@ -32,89 +32,97 @@ mod vm_tests {
         assert_eq!(100, vm.run());
     }
 
-    /*
+    #[test]
+    fn math_u() {
+        let program: Vec<u8> = [HEADER.to_vec(), vec![
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::MulU.into(),
+
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::DivU.into(),
+            
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::SubU.into(),
+            
+            Opcode::Push.into(), 0, 0, 1,
+            Opcode::AddU.into(),
+        ]].concat();
+
+        let mut machine = Machine::new(program);
+        assert_eq!(1, machine.run())
+    }
+
+    #[test]
+    fn math_i() {
+        let program: Vec<u8> = [HEADER.to_vec(), vec![
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::MulI.into(),
+
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::DivI.into(),
+            
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::SubI.into(),
+            
+            Opcode::Push.into(), 0, 0, 1,
+            Opcode::AddI.into(),
+        ]].concat();
+
+        let mut machine = Machine::new(program);
+        assert_eq!(1, i64::from_be_bytes(machine.run().to_be_bytes()))
+    }
+
+    #[test]
+    fn math_f() {
+        let program: Vec<u8> = [HEADER.to_vec(), vec![
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::MulF.into(),
+
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::DivF.into(),
+            
+            Opcode::Push.into(), 0, 0, 255,
+            Opcode::SubF.into(),
+            
+            Opcode::Push.into(), 0, 0, 1,
+            Opcode::AddF.into(),
+        ]].concat();
+
+        let mut machine = Machine::new(program);
+        assert_eq!(1.0, f64::from_be_bytes(machine.run().to_be_bytes()))
+    }
+    
     #[test]
     fn bit_operations() {
-        let program = vec![
-            Opcode::Push.into(), 0, 0, 15,
+        let program = [HEADER.to_vec(), vec![
+            Opcode::Push.into(), 0, 0, 240,
             Opcode::Pop.into(), 1, 0,
+            Opcode::Shift.into(), 3, 0, 4,
 
-        ];
-        let program = vec![
-            encode(Opcode::Push, 0, 15, 0),
-            encode(Opcode::PopR, 0, 0, 0),
-            encode(Opcode::Push, 0, 2, 0),
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::Shift, 0, 1, 0),
-            encode(Opcode::PushR, 0, 0, 0),
-        ];
-
-        let mut vm = Machine::new(program);
-        assert_eq!(60, vm.run());
-
-        let program = vec![
-            encode(Opcode::Push, 0, 240, 0),
-            encode(Opcode::PopR, 0, 0, 0),
-            encode(Opcode::Push, 0, 15, 0),
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::BitAnd, 0, 1, 0),
-            encode(Opcode::PushR, 0, 0, 0),
-        ];
-
-        let mut vm = Machine::new(program);
-        assert_eq!(0, vm.run());
-
-        let program = vec![
-            encode(Opcode::Push, 0, 240, 0),
-            encode(Opcode::PopR, 0, 0, 0),
-            encode(Opcode::Push, 0, 15, 0),
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::BitOr, 0, 1, 0),
-            encode(Opcode::PushR, 0, 0, 0),
-        ];
-
-        let mut vm = Machine::new(program);
-        assert_eq!(255, vm.run());
-
-        let program = vec![
-            encode(Opcode::Push, 0, 246, 0),
-            encode(Opcode::PopR, 0, 0, 0),
-            encode(Opcode::Push, 0, 111, 0),
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::BitXor, 0, 1, 0),
-            encode(Opcode::PushR, 0, 0, 0),
-        ];
-
-        let mut vm = Machine::new(program);
-        assert_eq!(153, vm.run());
-
-        let program = vec![
-            encode(Opcode::Push, 0, 191, 0),
-            encode(Opcode::Push, 0, 189, 0),
-            encode(Opcode::Push, 0, 240, 0),
-            encode(Opcode::Push, 0, 255, 0),
-
-            encode(Opcode::PopR, 0, 0, 0),
-            encode(Opcode::Shift, 0, 8, 1),
+            Opcode::Push.into(), 0, 0, 82,
+            Opcode::Pop.into(), 1, 1,
+            Opcode::BitAnd.into(), 0, 1,
             
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::BitOr, 0, 1, 0),
-            encode(Opcode::Shift, 0, 8, 1),
+            Opcode::Push.into(), 0, 0, 167,
+            Opcode::Pop.into(), 1, 1,
+            Opcode::BitAnd.into(), 0, 1,
             
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::BitOr, 0, 1, 0),
-            encode(Opcode::Shift, 0, 8, 1),
+            Opcode::BitNot.into(), 0,
+            Opcode::BitNot.into(), 0,
             
-            encode(Opcode::PopR, 1, 0, 0),
-            encode(Opcode::BitOr, 0, 1, 0),
+            Opcode::Push.into(), 0, 0, 170,
+            Opcode::Pop.into(), 1, 1,
+            Opcode::BitXor.into(), 0, 1,
 
-            encode(Opcode::BitNot, 0, 0, 0),
-            encode(Opcode::PushR, 0, 0, 0),
+            Opcode::Push.into(), 1, 0
             
-        ];
+        ]].concat();
 
-        let mut vm = Machine::new(program);
-        assert_eq!(1_000_000, vm.run());
+        let mut machine = Machine::new(program);
+        assert_eq!(168, machine.run())
     }
-    */
+    
 }
