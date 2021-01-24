@@ -72,7 +72,7 @@ impl Lexer {
                         current_char = match self.peek() {
                             Some(c) => c,
                             None => {
-                                output.push(Token::new(TokenType::Num(match accumulator.parse::<i16>() {
+                                output.push(Token::new(TokenType::Num(match accumulator.parse::<i64>() {
                                     Ok(x) => x,
                                     Err(_) => return Err(CompError::Overflow(accumulator)),
                                 }), self.line ));
@@ -86,7 +86,7 @@ impl Lexer {
                             self.index += 1;
                             accumulator.push(current_char);
                         } else {
-                            output.push(Token::new(TokenType::Num(match accumulator.parse::<i16>() {
+                            output.push(Token::new(TokenType::Num(match accumulator.parse::<i64>() {
                                 Ok(x) => x,
                                 Err(_) => return Err(CompError::Overflow(accumulator)),
                             }), self.line ));
@@ -153,7 +153,7 @@ impl Lexer {
             println!("new line encountered");
         }
         match c {
-            '0'..='9' => TokenType::Num(c.to_digit(10).unwrap() as i16),
+            '0'..='9' => TokenType::Num(c.to_digit(10).unwrap() as i64),
             'a'..='z' | 'A'..='Z' | '\"' | '_' => TokenType::Str(String::from(*c)),
 
             '(' => TokenType::LParenth,

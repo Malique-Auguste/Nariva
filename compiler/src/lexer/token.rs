@@ -3,7 +3,7 @@ use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
-    Num(i16),
+    Num(i64),
     Str(String),
     Binding(String),
 
@@ -38,8 +38,8 @@ pub enum TokenType {
 
 #[derive(PartialEq)]
 pub struct Token {
-    token_type:TokenType,
-    line: usize
+    pub token_type:TokenType,
+    pub line: usize
 }
 
 impl Token {
