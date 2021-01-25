@@ -22,7 +22,7 @@ mod parser_tests {
             Token::new(TokenType::Else, 2),
             Token::new(TokenType::In, 2),
             Token::new(TokenType::Public, 2),
-            Token::new(TokenType::Num(2), 2),
+            Token::new(TokenType::U64(2), 2),
 
             Token::new(TokenType::While, 3),
             Token::new(TokenType::Private, 3),
@@ -43,7 +43,7 @@ mod parser_tests {
                 Token::new(TokenType::Else, 2),
                 Token::new(TokenType::In, 2),
                 Token::new(TokenType::Public, 2),
-                Token::new(TokenType::Num(2), 2),
+                Token::new(TokenType::U64(2), 2),
             ],
             vec![
                 Token::new(TokenType::While, 3),
@@ -53,5 +53,29 @@ mod parser_tests {
         ];
 
         assert_eq!(expected, Parser::split_by_line(tokens));
+    }
+
+    #[test]
+    fn get_expressions() {
+        let tokens = vec![
+            Token::new(TokenType::Dash, 0),
+            Token::new(TokenType::U64(2), 1),
+
+            Token::new(TokenType::Plus, 2),
+            Token::new(TokenType::U64(5), 3),
+
+            Token::new(TokenType::Star, 4),
+            Token::new(TokenType::U64(4), 5),
+
+            Token::new(TokenType::Slash, 6),
+            Token::new(TokenType::Dash, 7),
+            Token::new(TokenType::F64(3.5), 8),
+            Token::new(TokenType::Dash, 9),
+            Token::new(TokenType::U64(6), 0),
+        ];
+
+        let p = Parser::get_expression(tokens);
+        println!("{:?}", p);
+        panic!();
     }
 }

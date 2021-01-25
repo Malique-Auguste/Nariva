@@ -1,11 +1,15 @@
 use crate::parser::operator::Operator;
 
+#[derive(Debug, PartialEq)]
 pub enum Expression {
-    Binary { lhs: Box<Expression>, symbol: Operator, rhs: Box<Expression> },
-    Number { inner: u64 },
-    Unary { symbol: Operator, inner: Box<Expression> }
+    Binary { lhs: Box<Expression>, operator: Operator, rhs: Box<Expression> },
+    U64 { inner: u64 },
+    F64 { inner: f64 },
+    Str { inner: String },
+    Unary { operator: Operator, inner: Box<Expression> }
 }
 
+/*
 impl Expression {
     pub fn resolve(&self) -> u64 {
         match self {
@@ -28,3 +32,4 @@ impl Expression {
         }
     }
 }
+*/

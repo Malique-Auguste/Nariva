@@ -63,34 +63,66 @@ impl Lexer {
 
                 TokenType::LBracket | TokenType::RBracket | TokenType::LBrace | TokenType::RBrace | TokenType::LParenth | TokenType::RParenth  => output.push(Token::new(current_token_type, self.line)),
 
-                TokenType::Equal | TokenType::Minus | TokenType::Plus  => output.push(Token::new(current_token_type, self.line)),
+                TokenType::Dash | TokenType::Star | TokenType::Slash | TokenType::Plus | TokenType::Dot => output.push(Token::new(current_token_type, self.line)),
 
-                TokenType::Num(n) => {
+                TokenType::Equal | TokenType::Greater | TokenType::Lesser | TokenType::Bang => {
+                    let next_char = match self.peek() {
+                        Some(c) => c,
+                        None => return Err(CompError::UnexpectedEOF(format!("{:?} requires somethign after it", current_token_type)))
+                    };
+
+                    if next_char == '=' {
+                        output.push(Token::new(match current_token_type {
+                            TokenType::Equal => TokenType::EqualEqual,
+                            TokenType::Bang => TokenType::BangEqual,
+                            TokenType::Greater => TokenType::GreaterEqual,
+                            TokenType::Lesser => TokenType::LesserEqual,
+                            _ => unreachable!()
+                        }, self.line));
+
+                        self.index += 1;
+                    }
+
+                    else {
+                        output.push(Token::new(current_token_type, self.line))
+                    }
+                }
+
+                TokenType::U64(n) => {
                     let mut accumulator = n.to_string();
 
                     loop {
                         current_char = match self.peek() {
                             Some(c) => c,
                             None => {
-                                output.push(Token::new(TokenType::Num(match accumulator.parse::<i64>() {
-                                    Ok(x) => x,
-                                    Err(_) => return Err(CompError::Overflow(accumulator)),
-                                }), self.line ));
+                                if let Ok(x) = accumulator.parse::<u64>() {
+                                    output.push(Token::new(TokenType::U64(x), self.line ));
+                                }
+                                else if let Ok(x) = accumulator.parse::<f64>() {
+                                    output.push(Token::new(TokenType::F64(x), self.line ));
+                                }
+                                else {
+                                    return Err(CompError::UnexpectedChar(format!("{} either has two periods(e.g: '..') or is too large", accumulator)))
+                                }
 
                                 break;
                             }
                         };
                         
 
-                        if current_char.is_digit(10) {
+                        if current_char.is_digit(10) || current_char == '.' {
                             self.index += 1;
                             accumulator.push(current_char);
                         } else {
-                            output.push(Token::new(TokenType::Num(match accumulator.parse::<i64>() {
-                                Ok(x) => x,
-                                Err(_) => return Err(CompError::Overflow(accumulator)),
-                            }), self.line ));
-
+                            if let Ok(x) = accumulator.parse::<u64>() {
+                                output.push(Token::new(TokenType::U64(x), self.line ));
+                            }
+                            else if let Ok(x) = accumulator.parse::<f64>() {
+                                output.push(Token::new(TokenType::F64(x), self.line ));
+                            }
+                            else {
+                                return Err(CompError::Overflow(accumulator))
+                            }
                             break;
                         }
                     }
@@ -153,8 +185,8 @@ impl Lexer {
             println!("new line encountered");
         }
         match c {
-            '0'..='9' => TokenType::Num(c.to_digit(10).unwrap() as i64),
-            'a'..='z' | 'A'..='Z' | '\"' | '_' => TokenType::Str(String::from(*c)),
+            '0'..='9' => TokenType::U64(c.to_digit(10).unwrap() as u64),
+            'a'..='z' | 'A'..='Z' | '\"' | '_'  => TokenType::Str(String::from(*c)),
 
             '(' => TokenType::LParenth,
             ')' => TokenType::RParenth,
@@ -165,7 +197,15 @@ impl Lexer {
 
             '=' => TokenType::Equal,
             '+' => TokenType::Plus,
-            '-' => TokenType::Minus,
+            '-' => TokenType::Dash,
+            '*' => TokenType::Star,
+            '/' => TokenType::Slash,
+            '.' => TokenType::Dot,
+            
+            '>' => TokenType::Greater,
+            '<' => TokenType::Lesser,
+            '!' => TokenType::Bang,
+
 
             ' ' => TokenType::Whitespace,
             '\n' => TokenType::NewLine,

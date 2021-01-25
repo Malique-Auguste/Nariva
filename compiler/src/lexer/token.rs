@@ -1,9 +1,10 @@
 
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
-    Num(i64),
+    U64(u64),
+    F64(f64),
     Str(String),
     Binding(String),
 
@@ -27,8 +28,20 @@ pub enum TokenType {
     RParenth,
 
     Plus,
-    Minus,
+    Dash,
+    Star,
+    Slash,
+    Dot,
+
     Equal,
+    Bang,
+    Greater,
+    Lesser,
+
+    EqualEqual,
+    BangEqual,
+    GreaterEqual,
+    LesserEqual,
 
     Whitespace,
     Tab,
@@ -36,7 +49,7 @@ pub enum TokenType {
     NewLine,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct Token {
     pub token_type:TokenType,
     pub line: usize
