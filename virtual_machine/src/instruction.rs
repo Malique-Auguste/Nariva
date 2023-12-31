@@ -32,7 +32,7 @@ pub enum Opcode {
     MulF,
     DivF,
 
-    //Moves the bits in a number the specified amount to the left
+    //Moves the bits in a number the specified amount to the left or right
     Shift,
 
     //Bitwise operations

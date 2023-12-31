@@ -26,7 +26,7 @@ mod vm_tests {
             Opcode::Pop.into()
         ]].concat();
 
-        let mut vm = Machine::new(program);
+        let mut vm = Machine::new(program, false);
         assert_eq!(u64::MAX, vm.run());
     }
 
@@ -47,7 +47,7 @@ mod vm_tests {
             Opcode::AddU.into(),
         ]].concat();
 
-        let mut machine = Machine::new(program);
+        let mut machine = Machine::new(program, false);
         assert_eq!(1, machine.run())
     }
 
@@ -68,7 +68,7 @@ mod vm_tests {
             Opcode::AddI.into(),
         ]].concat();
 
-        let mut machine = Machine::new(program);
+        let mut machine = Machine::new(program, false);
         assert_eq!(1, i64::from_be_bytes(machine.run().to_be_bytes()))
     }
 
@@ -89,7 +89,7 @@ mod vm_tests {
             Opcode::AddF.into(),
         ]].concat();
 
-        let mut machine = Machine::new(program);
+        let mut machine = Machine::new(program, false);
         assert_eq!(1.5, f64::from_be_bytes(machine.run().to_be_bytes()))
     }
     
@@ -113,7 +113,7 @@ mod vm_tests {
             Opcode::BitNot.into(),            
         ]].concat();
 
-        let mut machine = Machine::new(program);
+        let mut machine = Machine::new(program, false);
         assert_eq!(15, machine.run())
     }
     

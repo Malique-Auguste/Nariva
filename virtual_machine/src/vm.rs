@@ -1,5 +1,7 @@
 use crate::instruction::{Opcode, ByteOps};
 
+//Code at the start of all programs to ensure that they are nariva files.
+//The numebrs decode to "Nariva Executable"
 pub const HEADER: [u8; 17] = [78, 97, 114, 105, 118, 97, 32, 69, 120, 101, 99, 117, 116, 97, 98, 108, 101];
 
 pub struct Machine {
@@ -8,16 +10,18 @@ pub struct Machine {
 
     pub stack: Vec<u64>,
 
+    show: bool,
     zero_flag: bool,
     sign_flag: bool
 }
 
 impl Machine {
-    pub fn new(program: Vec<u8>) -> Machine {
+    pub fn new(program: Vec<u8>, show: bool) -> Machine {
         Machine {
             program,
             program_address: 0,
             stack: Vec::new(),
+            show: show,
             zero_flag: true,
             sign_flag: true,
         }
@@ -33,6 +37,7 @@ impl Machine {
         (self.program[self.program_address - 1] as u16) << 8 | self.program[self.program_address] as u16
     }
 
+    //Loop that runs until program ends or HALT upcode is reached
     pub fn run(&mut self) -> u64 {
         if self.is_nariva_file() {
             self.program_address = HEADER.len() - 1;
@@ -51,11 +56,20 @@ impl Machine {
 
     pub fn execute_instruction(&mut self) {
         let opcode = self.next_8_bits().into();
-        println!("{:?}, {}", opcode, self.program_address);
+
+        if self.show {
+            println!("{:?}, {}", opcode, self.program_address);
+        }
+
         match opcode {
+            //Ens program if a HALT or ILLEGAL upcode is found
             Opcode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
             Opcode::Halt => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
 
+            /*
+            Appends a number to the stack. 
+            This number either has 8, 16, 32, or 64 bits depending on what is specified by the next 8 bits following the opcode
+            */
             Opcode::Push => {
                 let option = self.next_8_bits();
                 if option == 0 {
@@ -80,10 +94,12 @@ impl Machine {
                 }
             },
 
+            //Removes a number from the stack
             Opcode::Pop => {
                 self.stack.pop();
             },
 
+            //Mathematical operations performed on the last 2 numbers from the stack
             Opcode::AddU => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 + num1)
@@ -143,6 +159,7 @@ impl Machine {
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
 
+            //Shifts th ebits in the number to the left or right depenidng on the number that immediateley follows the opcode
             Opcode::Shift => {
                 let [num1, num2] = self.double_pop();
                 if self.next_8_bits() == 0 {
@@ -152,6 +169,8 @@ impl Machine {
                     self.stack.push(num2 >> num1)
                 }
             },
+
+            //Bitwise operations on the last 2 numbers in the stack
             Opcode::BitAnd => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 & num1);
@@ -174,6 +193,7 @@ impl Machine {
         }
     }
 
+    //Removes and returns the last 2 numbers form the stack
     pub fn double_pop(&mut self) -> [u64; 2] {
         [
             match self.stack.pop() {
