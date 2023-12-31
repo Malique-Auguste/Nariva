@@ -1,27 +1,41 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
+    /*
+    This represents an unknown opcode. 
+    For example, the opcodes go up to 20, so any number after this gets defulted to an illegal upcode (0).
+    */
     Illegal,
+
+    //This represents the end fo the program
     Halt,
 
+    //Adds a umber to the stack
     Push,
+    //Removes a number from the stack
     Pop,
 
+    //Math operations to be perfromed on unsigned intergers (>0)
     AddU,
     SubU,
     MulU,
     DivU,
 
+    //Math operations to be performed on signes intergers (positive and negative)
     AddI,
     SubI,
     MulI,
     DivI,
 
+    //Math operations to be performed on floats (fractions)
     AddF,
     SubF,
     MulF,
     DivF,
 
+    //Moves the bits in a number the specified amount to the left
     Shift,
+
+    //Bitwise operations
     BitAnd,
     BitOr,
     BitXor,
