@@ -1,3 +1,12 @@
 pub mod error;
+pub mod token;
 pub mod lexer;
-pub mod parser;
+
+#[cfg(test)]
+mod compiler_tests {
+    use crate::lexer::*;
+
+    fn basic_lexing() {
+
+    }
+}
