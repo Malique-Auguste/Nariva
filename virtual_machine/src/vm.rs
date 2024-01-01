@@ -1,4 +1,4 @@
-use crate::instruction::{Opcode, ByteOps};
+use crate::instruction::{OpCode, ByteOps};
 
 //Code at the start of all programs to ensure that they are nariva files.
 //The numebrs decode to "Nariva Executable"
@@ -63,104 +63,85 @@ impl Machine {
 
         match opcode {
             //Ens program if a HALT or ILLEGAL upcode is found
-            Opcode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
-            Opcode::Halt => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
+            OpCode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
+            OpCode::Halt => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
 
             /*
             Appends a number to the stack. 
             This number either has 8, 16, 32, or 64 bits depending on what is specified by the next 8 bits following the opcode
             */
-            Opcode::Push => {
-                let option = self.next_8_bits();
-                if option == 0 {
-                    //pushes u8
-                    let num = self.next_8_bits() as u64;
-                    self.stack.push(num);
-                }
-                else if option == 1 {
-                    //pushes u16
-                    let num = self.next_16_bits() as u64;
-                    self.stack.push(num);
-                }
-                else if option == 2 {
-                    //pushes u32
-                    let num = (self.next_16_bits() as u64) << 16 | (self.next_16_bits() as u64);
-                    self.stack.push(num);
-                }
-                else {
-                    //pushes u64
-                    let num = (self.next_16_bits() as u64) << 48 | (self.next_16_bits() as u64) << 32 | (self.next_16_bits() as u64) << 16 | self.next_16_bits() as u64;
-                    self.stack.push(num);
-                }
+            OpCode::Push => {
+                let num = (self.next_16_bits() as u64) << 48 | (self.next_16_bits() as u64) << 32 | (self.next_16_bits() as u64) << 16 | self.next_16_bits() as u64;
+                self.stack.push(num);
             },
 
             //Removes a number from the stack
-            Opcode::Pop => {
+            OpCode::Pop => {
                 self.stack.pop();
             },
 
             //Mathematical operations performed on the last 2 numbers from the stack
-            Opcode::AddU => {
+            OpCode::AddU => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 + num1)
             },
-            Opcode::SubU => {
+            OpCode::SubU => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 - num1)
             },
-            Opcode::MulU => {
+            OpCode::MulU => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 * num1)
             },
-            Opcode::DivU => {
+            OpCode::DivU => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 / num1)
             },
 
-            Opcode::AddI => {
+            OpCode::AddI => {
                 let [num1, num2] = self.double_pop();
                 let result = i64::from_be_bytes(num2.to_be_bytes()) + i64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::SubI => {
+            OpCode::SubI => {
                 let [num1, num2] = self.double_pop();
                 let result = i64::from_be_bytes(num2.to_be_bytes()) - i64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::MulI => {
+            OpCode::MulI => {
                 let [num1, num2] = self.double_pop();
                 let result = i64::from_be_bytes(num2.to_be_bytes()) * i64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::DivI => {
+            OpCode::DivI => {
                 let [num1, num2] = self.double_pop();
                 let result = i64::from_be_bytes(num2.to_be_bytes()) / i64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
 
-            Opcode::AddF => {
+            OpCode::AddF => {
                 let [num1, num2] = self.double_pop();
                 let result = f64::from_be_bytes(num2.to_be_bytes()) + f64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::SubF => {
+            OpCode::SubF => {
                 let [num1, num2] = self.double_pop();
                 let result = f64::from_be_bytes(num2.to_be_bytes()) - f64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::MulF => {
+            OpCode::MulF => {
                 let [num1, num2] = self.double_pop();
                 let result = f64::from_be_bytes(num2.to_be_bytes()) * f64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
-            Opcode::DivF => {
+            OpCode::DivF => {
                 let [num1, num2] = self.double_pop();
                 let result = f64::from_be_bytes(num2.to_be_bytes()) / f64::from_be_bytes(num1.to_be_bytes());
                 self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
             },
 
             //Shifts th ebits in the number to the left or right depenidng on the number that immediateley follows the opcode
-            Opcode::Shift => {
+            OpCode::Shift => {
                 let [num1, num2] = self.double_pop();
                 if self.next_8_bits() == 0 {
                     self.stack.push(num2 << num1)
@@ -171,19 +152,19 @@ impl Machine {
             },
 
             //Bitwise operations on the last 2 numbers in the stack
-            Opcode::BitAnd => {
+            OpCode::BitAnd => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 & num1);
             },
-            Opcode::BitOr => {
+            OpCode::BitOr => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 | num1);
             },
-            Opcode::BitXor => {
+            OpCode::BitXor => {
                 let [num1, num2] = self.double_pop();
                 self.stack.push(num2 ^ num1);
             },
-            Opcode::BitNot => {
+            OpCode::BitNot => {
                 let num = match self.stack.pop() {
                     Some(x) => x,
                     None => unimplemented!()

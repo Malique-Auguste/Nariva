@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-pub enum Opcode {
+pub enum OpCode {
     /*
     This represents an unknown opcode. 
     For example, the opcodes go up to 20, so any number after this gets defulted to an illegal upcode (0).
@@ -42,70 +42,106 @@ pub enum Opcode {
     BitNot
 }
 
-impl From<Opcode> for u8 {
-    fn from(o: Opcode) -> u8 {
+impl From<OpCode> for u8 {
+    fn from(o: OpCode) -> u8 {
         match o {
-            Opcode::Illegal => 0,
-            Opcode::Halt => 1,
+            OpCode::Illegal => 0,
+            OpCode::Halt => 1,
 
-            Opcode::Push => 2,
-            Opcode::Pop => 3,
+            OpCode::Push => 2,
+            OpCode::Pop => 3,
 
-            Opcode::AddU => 4,
-            Opcode::SubU => 5,
-            Opcode::MulU => 6,
-            Opcode::DivU => 7,
+            OpCode::AddU => 4,
+            OpCode::SubU => 5,
+            OpCode::MulU => 6,
+            OpCode::DivU => 7,
 
-            Opcode::AddI => 8,
-            Opcode::SubI => 9,
-            Opcode::MulI => 10,
-            Opcode::DivI => 11,
+            OpCode::AddI => 8,
+            OpCode::SubI => 9,
+            OpCode::MulI => 10,
+            OpCode::DivI => 11,
 
-            Opcode::AddF => 12,
-            Opcode::SubF => 13,
-            Opcode::MulF => 14,
-            Opcode::DivF => 15,
+            OpCode::AddF => 12,
+            OpCode::SubF => 13,
+            OpCode::MulF => 14,
+            OpCode::DivF => 15,
 
-            Opcode::Shift => 16, 
+            OpCode::Shift => 16, 
             
-            Opcode::BitAnd => 17,
-            Opcode::BitOr => 18,
-            Opcode::BitXor => 19,
-            Opcode::BitNot => 20,
+            OpCode::BitAnd => 17,
+            OpCode::BitOr => 18,
+            OpCode::BitXor => 19,
+            OpCode::BitNot => 20,
         }
     }
 }
 
-impl From<u8> for Opcode {
-    fn from(o: u8) -> Opcode {
+impl From<u8> for OpCode {
+    fn from(o: u8) -> OpCode {
         match o {
-            1 => Opcode::Halt,
+            1 => OpCode::Halt,
 
-            2 => Opcode::Push,
-            3 => Opcode::Pop,
+            2 => OpCode::Push,
+            3 => OpCode::Pop,
 
-            4 => Opcode::AddU,
-            5 => Opcode::SubU,
-            6 => Opcode::MulU,
-            7 => Opcode::DivU,
+            4 => OpCode::AddU,
+            5 => OpCode::SubU,
+            6 => OpCode::MulU,
+            7 => OpCode::DivU,
 
-            8 => Opcode::AddI,
-            9 => Opcode::SubI,
-            10 => Opcode::MulI,
-            11 => Opcode::DivI,
+            8 => OpCode::AddI,
+            9 => OpCode::SubI,
+            10 => OpCode::MulI,
+            11 => OpCode::DivI,
 
-            12 => Opcode::AddF,
-            13 => Opcode::SubF,
-            14 => Opcode::MulF,
-            15 => Opcode::DivF,
+            12 => OpCode::AddF,
+            13 => OpCode::SubF,
+            14 => OpCode::MulF,
+            15 => OpCode::DivF,
 
-            16 => Opcode::Shift,
-            17 => Opcode::BitAnd,
-            18 => Opcode::BitOr,
-            19 => Opcode::BitXor,
-            20 => Opcode::BitNot,
+            16 => OpCode::Shift,
+            17 => OpCode::BitAnd,
+            18 => OpCode::BitOr,
+            19 => OpCode::BitXor,
+            20 => OpCode::BitNot,
             
-            _ => Opcode::Illegal,
+            _ => OpCode::Illegal,
+        }
+    }
+}
+
+impl From<&String> for OpCode {
+    fn from(o: &String) -> OpCode {
+        match o.as_str() {
+            "Halt" | "HALT" => OpCode::Halt,
+            
+            "Push" | "PUSH"=> OpCode::Push,
+            "Pop" | "POP"=> OpCode::Pop,
+            
+            "AddU" | "ADDU" => OpCode::AddU,
+            "SubU" | "SUBU" => OpCode::SubU,
+            "MulU" | "MULU" => OpCode::MulU,
+            "DivU" | "DIVU" => OpCode::DivU,
+
+            "AddI" | "ADDI" => OpCode::AddI,
+            "SubI" | "SUBI" => OpCode::SubI,
+            "MulI" | "MULI" => OpCode::MulI,
+            "DivI" | "DIVI" => OpCode::DivI,
+
+            "AddF" | "ADDF" => OpCode::AddF,
+            "SubF" | "SUBF" => OpCode::SubF,
+            "MulF" | "MULF" => OpCode::MulF,
+            "DivF" | "DIVF" => OpCode::DivF,
+
+            "Shift" | "SHIFT" => OpCode::Shift,
+
+            "BitAnd" | "BITAND" => OpCode::BitAnd,
+            "BitOr" | "BITOR" => OpCode::BitOr,
+            "BitXor" | "BITXOR" => OpCode::BitXor,
+            "BitNot" | "BITNOT" => OpCode::BitNot,
+
+            "Illegal" | "ILLEGAL" | _ => OpCode::Illegal,
+
         }
     }
 }

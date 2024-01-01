@@ -21,9 +21,9 @@ mod vm_tests {
     #[test]
     fn push_pop() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 3, 255, 255, 255, 255, 255, 255, 255, 255,
-            Opcode::Push.into(), 0, 1,
-            Opcode::Pop.into()
+            OpCode::Push.into(), 255, 255, 255, 255, 255, 255, 255, 255,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,1,
+            OpCode::Pop.into()
         ]].concat();
 
         let mut vm = Machine::new(program, false);
@@ -33,18 +33,18 @@ mod vm_tests {
     #[test]
     fn math_u() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 255,
-            Opcode::Push.into(), 0, 255,
-            Opcode::MulU.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::MulU.into(),
 
-            Opcode::Push.into(), 0, 255,
-            Opcode::DivU.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::DivU.into(),
             
-            Opcode::Push.into(), 0, 255,
-            Opcode::SubU.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::SubU.into(),
             
-            Opcode::Push.into(), 0, 1,
-            Opcode::AddU.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,1,
+            OpCode::AddU.into(),
         ]].concat();
 
         let mut machine = Machine::new(program, false);
@@ -54,18 +54,18 @@ mod vm_tests {
     #[test]
     fn math_i() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 255,
-            Opcode::Push.into(), 0, 255,
-            Opcode::MulI.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,255,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,255,
+            OpCode::MulI.into(),
 
-            Opcode::Push.into(), 0, 255,
-            Opcode::DivI.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,255,
+            OpCode::DivI.into(),
             
-            Opcode::Push.into(), 0, 255,
-            Opcode::SubI.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,255,
+            OpCode::SubI.into(),
             
-            Opcode::Push.into(), 0, 1,
-            Opcode::AddI.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,1,
+            OpCode::AddI.into(),
         ]].concat();
 
         let mut machine = Machine::new(program, false);
@@ -75,18 +75,18 @@ mod vm_tests {
     #[test]
     fn math_f() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 3, 64, 111, 224, 0, 0, 0, 0, 0,        //255
-            Opcode::Push.into(), 3, 64, 111, 224, 0, 0, 0, 0, 0,
-            Opcode::MulF.into(),
+            OpCode::Push.into(), 64, 111, 224, 0, 0, 0, 0, 0,        //255
+            OpCode::Push.into(), 64, 111, 224, 0, 0, 0, 0, 0,
+            OpCode::MulF.into(),
 
-            Opcode::Push.into(), 3, 64, 127, 224, 0, 0, 0, 0, 0,        //510
-            Opcode::DivF.into(),
+            OpCode::Push.into(), 64, 127, 224, 0, 0, 0, 0, 0,        //510
+            OpCode::DivF.into(),
             
-            Opcode::Push.into(), 3, 64, 95, 192, 0, 0, 0, 0, 0,         //127
-            Opcode::SubF.into(),
+            OpCode::Push.into(), 64, 95, 192, 0, 0, 0, 0, 0,         //127
+            OpCode::SubF.into(),
             
-            Opcode::Push.into(), 3, 63, 240, 0, 0, 0, 0, 0, 0,
-            Opcode::AddF.into(),
+            OpCode::Push.into(), 63, 240, 0, 0, 0, 0, 0, 0,
+            OpCode::AddF.into(),
         ]].concat();
 
         let mut machine = Machine::new(program, false);
@@ -96,21 +96,21 @@ mod vm_tests {
     #[test]
     fn bit_operations() {
         let program = [HEADER.to_vec(), vec![
-            Opcode::Push.into(), 0, 15,
-            Opcode::Push.into(), 0, 4,
-            Opcode::Shift.into(), 0,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,15,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,4,
+            OpCode::Shift.into(), 0,
 
-            Opcode::Push.into(), 0, 15,
-            Opcode::BitAnd.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,15,
+            OpCode::BitAnd.into(),
 
-            Opcode::Push.into(), 0, 10,
-            Opcode::BitXor.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,10,
+            OpCode::BitXor.into(),
 
-            Opcode::Push.into(), 0, 5,
-            Opcode::BitOr.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,5,
+            OpCode::BitOr.into(),
 
-            Opcode::BitNot.into(),
-            Opcode::BitNot.into(),            
+            OpCode::BitNot.into(),
+            OpCode::BitNot.into(),            
         ]].concat();
 
         let mut machine = Machine::new(program, false);
