@@ -1,4 +1,5 @@
 use crate::instruction::{OpCode, ByteOps};
+use crate::flag::Flag;
 
 //Code at the start of all programs to ensure that they are nariva files.
 //The numebrs decode to "Nariva Executable"
@@ -11,8 +12,7 @@ pub struct Machine {
     pub stack: Vec<u64>,
 
     show: bool,
-    zero_flag: bool,
-    sign_flag: bool
+    flag: Flag
 }
 
 impl Machine {
@@ -22,8 +22,7 @@ impl Machine {
             program_address: 0,
             stack: Vec::new(),
             show: false,
-            zero_flag: true,
-            sign_flag: true,
+            flag: Flag::Equal
         }
     }
 
@@ -57,13 +56,13 @@ impl Machine {
         let opcode = self.next_8_bits().into();
 
         if self.show {
-            println!("{:?}, {}", opcode, self.program_address);
+            println!("{:?}, {}", opcode, self.program_address - HEADER.len());
         }
 
         match opcode {
             //Ens program if a HALT or ILLEGAL upcode is found
             OpCode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
-            OpCode::Halt => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
+            OpCode::Halt => self.program_address = self.program.len(),
 
             /*
             Appends a number to the stack. 
@@ -169,9 +168,95 @@ impl Machine {
                     None => unimplemented!()
                 };
                 self.stack.push(!num)
-            }
+            },
+
+            OpCode::CMP => {
+                match self.next_8_bits() {
+                    0 => {
+                        let [num1, num2] = self.double_pop();
+                        let result: u64 = num2 - num1;
+                        if result > 0 {
+                            self.flag = Flag::Greater;
+                        }
+                        else if result == 0 {
+                            self.flag = Flag::Equal;
+                        }
+                        else {
+                            self.flag = Flag::Less;
+                        }
+                    },
+                    1 => {
+                        let [num1, num2] = self.double_pop();
+                        let result: i64 = i64::from_be_bytes(num2.to_be_bytes()) - i64::from_be_bytes(num1.to_be_bytes());
+                        if result > 0 {
+                            self.flag = Flag::Greater;
+                        }
+                        else if result == 0 {
+                            self.flag = Flag::Equal;
+                        }
+                        else {
+                            self.flag = Flag::Less;
+                        }
+
+                    },
+                    2 => {
+                        let [num1, num2] = self.double_pop();
+                        let result: f64 = f64::from_be_bytes(num2.to_be_bytes()) - f64::from_be_bytes(num1.to_be_bytes());
+                        if result > 0.0 {
+                            self.flag = Flag::Greater;
+                        }
+                        else if result == 0.0 {
+                            self.flag = Flag::Equal;
+                        }
+                        else {
+                            self.flag = Flag::Less;
+                        }
+                    },
+                    _ => unimplemented!("") 
+                }
+            },
+
+            OpCode::JMP => self.program_address = self.next_8_bits() as usize,
+
+            OpCode::JE => {
+                match self.flag {
+                    Flag::Equal => {
+                        self.program_address = self.next_8_bits() as usize;
+                    },
+                    _ => ()
+                } 
+            },
+
+            OpCode::JNE => {
+                match self.flag {
+                    Flag::Greater | Flag::Less => {
+                        self.program_address = self.next_8_bits() as usize;
+                    },
+                    _ => ()
+                } 
+            },
+
+            OpCode::JG => {
+                match self.flag {
+                    Flag::Greater => {
+                        self.program_address = self.next_8_bits() as usize;
+                    },
+                    _ => ()
+                } 
+            },
+
+            OpCode::JL => {
+                match self.flag {
+                    Flag::Less => {
+                        self.program_address = self.next_8_bits() as usize;
+                    },
+                    _ => ()
+                } 
+            },
+
         }
     }
+
 
     //Removes and returns the last 2 numbers form the stack
     pub fn double_pop(&mut self) -> [u64; 2] {

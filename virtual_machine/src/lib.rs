@@ -1,5 +1,7 @@
 pub mod vm;
 pub mod instruction;
+pub mod flag;
+
 
 #[cfg(test)]
 mod vm_tests {
@@ -115,6 +117,25 @@ mod vm_tests {
 
         let mut machine = Machine::new();
         assert_eq!(15, machine.run(program, false))
+    }
+
+    #[test]
+    fn jumping() {
+        let program = [HEADER.to_vec(), vec![
+            OpCode::Push.into(), 0,0,0,0,0,0,0,15,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,10,
+            OpCode::CMP.into(), 0,
+            OpCode::JE.into(),
+            OpCode::JL.into(),
+            OpCode::JG.into(), 41,
+            OpCode::Halt.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,5, 
+            OpCode::JMP.into(), 40
+            ]
+        ].concat();
+
+        let mut machine = Machine::new();
+        assert_eq!(5, machine.run(program, true))
     }
     
 }

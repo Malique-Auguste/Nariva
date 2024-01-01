@@ -3,5 +3,5 @@
 members = [
     "virtual_machine",
     "compiler",
-    "interpreter"
+    "interface"
 ]

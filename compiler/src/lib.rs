@@ -49,9 +49,8 @@ mod compiler_tests {
     #[test]
     fn basic_generating() {
         let program = vec![Token::Word("Push".to_string()), Token::NumU(3),  Token::Word("PUSH".to_string()), Token::NumF(-2.1), Token::Word("ADDF".to_string())];
-        let mut temp: Vec<u8> = [2, 0, 0, 0, 0, 0, 0 ,0 ,3, 2, 192, 0, 204, 204, 204, 204, 204, 205, 12].to_vec();
-        let mut binary_code: Vec<u8> = HEADER.to_vec();
-        binary_code.append(&mut temp);
+        let mut binary_code: Vec<u8> = [HEADER.to_vec(), [2, 0, 0, 0, 0, 0, 0 ,0 ,3, 2, 192, 0, 204, 204, 204, 204, 204, 205, 12].to_vec()].concat();
+
 
 
         let mut gen = Generator::new();

@@ -39,7 +39,17 @@ pub enum OpCode {
     BitAnd,
     BitOr,
     BitXor,
-    BitNot
+    BitNot,
+
+    //Compare
+    CMP,
+
+    //jump if equal, not equal, greater, less
+    JMP,
+    JE,
+    JNE,
+    JG,
+    JL
 }
 
 impl From<OpCode> for u8 {
@@ -72,6 +82,14 @@ impl From<OpCode> for u8 {
             OpCode::BitOr => 18,
             OpCode::BitXor => 19,
             OpCode::BitNot => 20,
+
+            OpCode::CMP => 21,
+
+            OpCode::JMP => 22,
+            OpCode::JE => 23,
+            OpCode::JNE => 24,
+            OpCode::JG => 25,
+            OpCode::JL => 26
         }
     }
 }
@@ -104,6 +122,14 @@ impl From<u8> for OpCode {
             18 => OpCode::BitOr,
             19 => OpCode::BitXor,
             20 => OpCode::BitNot,
+
+            21 => OpCode::CMP,
+
+            22 => OpCode::JMP,
+            23 => OpCode::JE,
+            24 => OpCode::JNE,
+            25 => OpCode::JG,
+            26 => OpCode::JL,
             
             _ => OpCode::Illegal,
         }
@@ -140,8 +166,15 @@ impl From<&String> for OpCode {
             "BitXor" | "BITXOR" => OpCode::BitXor,
             "BitNot" | "BITNOT" => OpCode::BitNot,
 
-            "Illegal" | "ILLEGAL" | _ => OpCode::Illegal,
+            "Cmp" | "CMP" => OpCode::CMP,
 
+            "JMP" => OpCode::JMP,
+            "JE" => OpCode::JE,
+            "JNE" => OpCode::JNE,
+            "JG" => OpCode::JG,
+            "JL" => OpCode::JL,
+
+            "Illegal" | "ILLEGAL" | _ => OpCode::Illegal,
         }
     }
 }
