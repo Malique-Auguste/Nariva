@@ -1,1 +1,1 @@
-C:\Users\malique\important_stuff\rust\Nariva\target\debug\libvirtual_machine.rlib: C:\Users\malique\important_stuff\rust\Nariva\virtual_machine\src\lib.rs
+C:\Users\maliq\Projects\Nariva\target\debug\libvirtual_machine.rlib: C:\Users\maliq\Projects\Nariva\virtual_machine\src\instruction.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\lib.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\vm.rs

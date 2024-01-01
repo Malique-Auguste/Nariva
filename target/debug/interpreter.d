@@ -1,0 +1,1 @@
+C:\Users\maliq\Projects\Nariva\target\debug\interpreter.exe: C:\Users\maliq\Projects\Nariva\interpreter\src\main.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\instruction.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\lib.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\vm.rs

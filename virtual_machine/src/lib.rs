@@ -26,8 +26,8 @@ mod vm_tests {
             OpCode::Pop.into()
         ]].concat();
 
-        let mut vm = Machine::new(program, false);
-        assert_eq!(u64::MAX, vm.run());
+        let mut vm = Machine::new();
+        assert_eq!(u64::MAX, vm.run(program, false));
     }
 
     #[test]
@@ -47,8 +47,8 @@ mod vm_tests {
             OpCode::AddU.into(),
         ]].concat();
 
-        let mut machine = Machine::new(program, false);
-        assert_eq!(1, machine.run())
+        let mut machine = Machine::new();
+        assert_eq!(1, machine.run(program, false))
     }
 
     #[test]
@@ -68,8 +68,8 @@ mod vm_tests {
             OpCode::AddI.into(),
         ]].concat();
 
-        let mut machine = Machine::new(program, false);
-        assert_eq!(1, i64::from_be_bytes(machine.run().to_be_bytes()))
+        let mut machine = Machine::new();
+        assert_eq!(1, i64::from_be_bytes(machine.run(program, false).to_be_bytes()))
     }
 
     #[test]
@@ -89,8 +89,8 @@ mod vm_tests {
             OpCode::AddF.into(),
         ]].concat();
 
-        let mut machine = Machine::new(program, false);
-        assert_eq!(1.5, f64::from_be_bytes(machine.run().to_be_bytes()))
+        let mut machine = Machine::new();
+        assert_eq!(1.5, f64::from_be_bytes(machine.run(program, false).to_be_bytes()))
     }
     
     #[test]
@@ -113,8 +113,8 @@ mod vm_tests {
             OpCode::BitNot.into(),            
         ]].concat();
 
-        let mut machine = Machine::new(program, false);
-        assert_eq!(15, machine.run())
+        let mut machine = Machine::new();
+        assert_eq!(15, machine.run(program, false))
     }
     
 }

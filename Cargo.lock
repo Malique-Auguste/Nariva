@@ -10,5 +10,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "interpreter"
+version = "0.1.0"
+dependencies = [
+ "virtual_machine",
+]
+
+[[package]]
 name = "virtual_machine"
 version = "0.1.0"

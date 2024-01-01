@@ -4,6 +4,7 @@ pub mod lexer;
 pub mod parser;
 pub mod generator;
 pub mod compiler;
+extern crate virtual_machine;
 
 
 
@@ -15,6 +16,8 @@ mod compiler_tests {
     use crate::lexer::*;
     use crate::token::*;
     use crate::compiler::*;
+    use virtual_machine::vm::HEADER;
+
 
 
     #[test]
@@ -46,7 +49,9 @@ mod compiler_tests {
     #[test]
     fn basic_generating() {
         let program = vec![Token::Word("Push".to_string()), Token::NumU(3),  Token::Word("PUSH".to_string()), Token::NumF(-2.1), Token::Word("ADDF".to_string())];
-        let binary_code: Vec<u8> = vec![2, 0, 0, 0, 0, 0, 0 ,0 ,3, 2, 192, 0, 204, 204, 204, 204, 204, 205, 12];
+        let mut temp: Vec<u8> = [2, 0, 0, 0, 0, 0, 0 ,0 ,3, 2, 192, 0, 204, 204, 204, 204, 204, 205, 12].to_vec();
+        let mut binary_code: Vec<u8> = HEADER.to_vec();
+        binary_code.append(&mut temp);
 
 
         let mut gen = Generator::new();
@@ -57,7 +62,7 @@ mod compiler_tests {
 
     #[test]
     fn basic_compiling() {
-        let mut comp = Compiler::new("test.nar".to_string());
+        let mut comp = Compiler::new("../nar files/test.nar".to_string());
         let program = "
             PUSH 2.0
             PUSH 2.5

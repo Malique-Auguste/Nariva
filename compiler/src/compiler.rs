@@ -15,9 +15,11 @@ impl Compiler {
     }
 
     pub fn compile<S: Into<String>>(&mut self, input: S) -> Result<(), CompError> {
-        self.lexer.lex(input).unwrap();
+        println!("L: {:?}", self.lexer.lex(input).unwrap());
+
         Parser::parse(&self.lexer.output).unwrap();
-        self.generator.generate(&self.lexer.output).unwrap();
+
+        println!("G: {:?}", self.generator.generate(&self.lexer.output).unwrap());
 
         let mut file = fs::File::create(&self.file_path).unwrap();
 

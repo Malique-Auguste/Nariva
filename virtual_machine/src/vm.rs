@@ -16,12 +16,12 @@ pub struct Machine {
 }
 
 impl Machine {
-    pub fn new(program: Vec<u8>, show: bool) -> Machine {
+    pub fn new() -> Machine {
         Machine {
-            program,
+            program: Vec::new(),
             program_address: 0,
             stack: Vec::new(),
-            show: show,
+            show: false,
             zero_flag: true,
             sign_flag: true,
         }
@@ -32,13 +32,12 @@ impl Machine {
         self.program[self.program_address]
     }
 
-    pub fn next_16_bits(&mut self) -> u16 {
-        self.program_address += 2;
-        (self.program[self.program_address - 1] as u16) << 8 | self.program[self.program_address] as u16
-    }
 
     //Loop that runs until program ends or HALT upcode is reached
-    pub fn run(&mut self) -> u64 {
+    pub fn run(&mut self, program: Vec<u8>, show: bool) -> u64 {
+        self.program = program;
+        self.show = show;
+
         if self.is_nariva_file() {
             self.program_address = HEADER.len() - 1;
             loop {
@@ -71,7 +70,7 @@ impl Machine {
             This number either has 8, 16, 32, or 64 bits depending on what is specified by the next 8 bits following the opcode
             */
             OpCode::Push => {
-                let num = (self.next_16_bits() as u64) << 48 | (self.next_16_bits() as u64) << 32 | (self.next_16_bits() as u64) << 16 | self.next_16_bits() as u64;
+                let num = u64::from_be_bytes([self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits()]);
                 self.stack.push(num);
             },
 
