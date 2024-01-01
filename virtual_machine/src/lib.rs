@@ -129,13 +129,34 @@ mod vm_tests {
             OpCode::JL.into(),
             OpCode::JG.into(), 41,
             OpCode::Halt.into(),
-            OpCode::Push.into(), 0,0,0,0,0,0,0,5, 
-            OpCode::JMP.into(), 40
+            OpCode::Push.into(), 0,0,0,0,0,0,0,40, 
+            OpCode::JMP.into()
             ]
         ].concat();
 
         let mut machine = Machine::new();
-        assert_eq!(5, machine.run(program, true))
+        assert_eq!(u64::MAX, machine.run(program, true))
+    }
+
+    #[test]
+    fn parse_function() {
+        let program = [HEADER.to_vec(), vec![
+            OpCode::Push.into(), 0,0,0,0,0,0,0,12,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,17,
+            OpCode::CMP.into(), 0,
+            OpCode::JG.into(), 0,0,0,0,0,0,0,54,
+            OpCode::Call.into(), 0,0,0,0,0,0,0,55,
+            OpCode::Halt.into(),
+
+
+            OpCode::Push.into(), 0,0,0,0,0,0,0,40, 
+            OpCode::Return.into(),
+            
+            ]
+        ].concat();
+
+        let mut machine = Machine::new();
+        assert_eq!(40, machine.run(program, true))
     }
     
 }

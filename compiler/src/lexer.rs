@@ -1,19 +1,19 @@
-use std::fmt::Error;
+use std::{fmt::Error, process::Output};
 
 use crate::{error::CompError, token::Token};
 
-pub struct Lexer {
-    pub output: Vec<Token>
-}
+//converts human readable text into tokens
+pub struct Lexer;
 
 impl Lexer {
     pub fn new() -> Lexer{
 
-        Lexer { output: Vec::new()}
+        Lexer
     }
 
-    pub fn lex<S: Into<String>>(&mut self, input: S ) -> Result<&Vec<Token>, CompError> {
+    pub fn lex<S: Into<String>>( input: S ) -> Result<Vec<Token>, CompError> {
         let input: Vec<char> = input.into().chars().collect();
+        let mut output = Vec::new();
         let mut index = 0;
 
         if input.is_empty() {
@@ -25,11 +25,11 @@ impl Lexer {
                 break;
             }
 
-            self.output.push(  
+            output.push(  
                 match input[index]{
-                    'a'..='z' | 'A'..='Z' => self.get_word(&input, &mut index),
+                    'a'..='z' | 'A'..='Z' => Lexer::get_word(&input, &mut index),
 
-                    '0'..='9' | '+' | '-' => self.get_num(&input, &mut index),
+                    '0'..='9' | '+' | '-' => Lexer::get_num(&input, &mut index),
 
                     ' ' | '\t' | '\n' | _ => {
                         index += 1;
@@ -39,24 +39,28 @@ impl Lexer {
             )
         };
 
-        return Ok(&self.output)
+        return Ok(output)
 
     }
 
-    fn get_word(&self, input: &Vec<char>, index: &mut usize) -> Token {
+    fn get_word(input: &Vec<char>, index: &mut usize) -> Token {
         let mut word = String::from(input[*index]);
         *index += 1;
 
         loop {
             if *index == input.len() {
-                return Token::Word(word)
+                return Token::OpCode(word)
             }
 
             match input[*index] {
                 ' ' | '\t' | '\n' => {
                     *index += 1;
-                    return Token::Word(word)
+                    return Token::OpCode(word)
                 },
+                ':' => {
+                    *index += 1;
+                    return Token::Func(word)
+                }
                 _ => {
                     word.push(input[*index]);
                     *index += 1;
@@ -65,7 +69,7 @@ impl Lexer {
         }
     }
 
-    pub fn get_num(&self, input: &Vec<char>, index: &mut usize) -> Token {
+    pub fn get_num(input: &Vec<char>, index: &mut usize) -> Token {
         let mut num = String::from(input[*index]);
         *index += 1;
         

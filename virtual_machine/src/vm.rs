@@ -6,12 +6,20 @@ use crate::flag::Flag;
 pub const HEADER: [u8; 17] = [78, 97, 114, 105, 118, 97, 32, 69, 120, 101, 99, 117, 116, 97, 98, 108, 101];
 
 pub struct Machine {
+    //list of encoded instructions
     pub program: Vec<u8>,
+    
+    //current position of the vm in the list of instructions
     pub program_address: usize,
 
+    //numbers stored by the vm / working memory / ram
     pub stack: Vec<u64>,
+    pub return_addresses: Vec<usize>,
 
+    //whether or not to print out instructions being executed
     show: bool,
+
+    //result of comparison
     flag: Flag
 }
 
@@ -21,14 +29,23 @@ impl Machine {
             program: Vec::new(),
             program_address: 0,
             stack: Vec::new(),
+            return_addresses: Vec::new(),
             show: false,
-            flag: Flag::Equal
+            flag: Flag::None
         }
     }
 
     pub fn next_8_bits(&mut self) -> u8 {
         self.program_address += 1;
         self.program[self.program_address]
+    }
+
+    pub fn next_64_bits(&mut self) -> u64 {
+        self.program_address += 8;
+        u64::from_be_bytes([self.program[self.program_address - 7 ], self.program[self.program_address - 6 ],
+            self.program[self.program_address - 5 ], self.program[self.program_address - 4 ],
+            self.program[self.program_address - 3 ], self.program[self.program_address - 2 ],
+            self.program[self.program_address - 1 ], self.program[self.program_address ]])
     }
 
 
@@ -43,7 +60,10 @@ impl Machine {
                 self.execute_instruction();
 
                 if self.program_address >= self.program.len() - 1 {
-                    return self.stack[self.stack.len() - 1]
+                    return match self.stack.pop() {
+                        Some(num) => num,
+                        None => u64::MAX
+                    }
                 }
             }
         }
@@ -60,7 +80,7 @@ impl Machine {
         }
 
         match opcode {
-            //Ens program if a HALT or ILLEGAL upcode is found
+            //Ends program if a HALT or ILLEGAL upcode is found
             OpCode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
             OpCode::Halt => self.program_address = self.program.len(),
 
@@ -69,8 +89,8 @@ impl Machine {
             This number either has 8, 16, 32, or 64 bits depending on what is specified by the next 8 bits following the opcode
             */
             OpCode::Push => {
-                let num = u64::from_be_bytes([self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits(), self.next_8_bits()]);
-                self.stack.push(num);
+                let new_num = self.next_64_bits();
+                self.stack.push(new_num)
             },
 
             //Removes a number from the stack
@@ -81,46 +101,102 @@ impl Machine {
             //Mathematical operations performed on the last 2 numbers from the stack
             OpCode::AddU => {
                 let [num1, num2] = self.double_pop();
-                self.stack.push(num2 + num1)
+                match num2.checked_add(num1) {
+                    Some(result) => self.stack.push(result),
+                    None => {
+                        self.stack.push(u64::MAX);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
             OpCode::SubU => {
                 let [num1, num2] = self.double_pop();
-                self.stack.push(num2 - num1)
+                match num2.checked_sub(num1) {
+                    Some(result) => self.stack.push(result),
+                    None => {
+                        self.stack.push(u64::MIN);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
             OpCode::MulU => {
-                let [num1, num2] = self.double_pop();
-                self.stack.push(num2 * num1)
+                let [num2, num1] = self.double_pop();
+                match num1.checked_mul(num2) {
+                    Some(result) => self.stack.push(result),
+                    None => {
+                        self.stack.push(u64::MAX);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
             OpCode::DivU => {
                 let [num1, num2] = self.double_pop();
-                self.stack.push(num2 / num1)
+                match num2.checked_div(num1) {
+                    Some(result) => self.stack.push(result),
+                    None => {
+                        self.stack.push(u64::MAX);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
 
             OpCode::AddI => {
                 let [num1, num2] = self.double_pop();
-                let result = i64::from_be_bytes(num2.to_be_bytes()) + i64::from_be_bytes(num1.to_be_bytes());
-                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+                let [num1, num2] = [i64::from_be_bytes(num1.to_be_bytes()), i64::from_be_bytes(num2.to_be_bytes())];
+                match num2.checked_add(num1) {
+                    Some(result) => self.stack.push(u64::from_be_bytes(result.to_be_bytes())),
+                    None => {
+                        self.stack.push(u64::MAX);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
             OpCode::SubI => {
                 let [num1, num2] = self.double_pop();
-                let result = i64::from_be_bytes(num2.to_be_bytes()) - i64::from_be_bytes(num1.to_be_bytes());
-                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+                let [num1, num2] = [i64::from_be_bytes(num1.to_be_bytes()), i64::from_be_bytes(num2.to_be_bytes())];
+                match num2.checked_sub(num1) {
+                    Some(result) => self.stack.push(u64::from_be_bytes(result.to_be_bytes())),
+                    None => {
+                        self.stack.push(u64::MIN);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
             OpCode::MulI => {
                 let [num1, num2] = self.double_pop();
-                let result = i64::from_be_bytes(num2.to_be_bytes()) * i64::from_be_bytes(num1.to_be_bytes());
-                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+                let [num1, num2] = [i64::from_be_bytes(num1.to_be_bytes()), i64::from_be_bytes(num2.to_be_bytes())];
+                match num2.checked_mul(num1) {
+                    Some(result) => self.stack.push(u64::from_be_bytes(result.to_be_bytes())),
+                    None => {
+                        self.stack.push(u64::MAX);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
             OpCode::DivI => {
                 let [num1, num2] = self.double_pop();
-                let result = i64::from_be_bytes(num2.to_be_bytes()) / i64::from_be_bytes(num1.to_be_bytes());
-                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+                let [num1, num2] = [i64::from_be_bytes(num1.to_be_bytes()), i64::from_be_bytes(num2.to_be_bytes())];
+                match num2.checked_div(num1) {
+                    Some(result) => self.stack.push(u64::from_be_bytes(result.to_be_bytes())),
+                    None => {
+                        self.stack.push(u64::MAX);
+                        self.flag = Flag::Overflow;
+                    }
+
+                };
             },
 
             OpCode::AddF => {
                 let [num1, num2] = self.double_pop();
-                let result = f64::from_be_bytes(num2.to_be_bytes()) + f64::from_be_bytes(num1.to_be_bytes());
-                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))
+                let result = f64::from_be_bytes(num1.to_be_bytes()) + f64::from_be_bytes(num2.to_be_bytes());
+                self.stack.push(u64::from_be_bytes(result.to_be_bytes()))                
             },
             OpCode::SubF => {
                 let [num1, num2] = self.double_pop();
@@ -174,28 +250,25 @@ impl Machine {
                 match self.next_8_bits() {
                     0 => {
                         let [num1, num2] = self.double_pop();
-                        let result: u64 = num2 - num1;
-                        if result > 0 {
-                            self.flag = Flag::Greater;
-                        }
-                        else if result == 0 {
-                            self.flag = Flag::Equal;
-                        }
-                        else {
-                            self.flag = Flag::Less;
+                        self.flag =  match num2.checked_sub(num1) {
+                            Some(0) => Flag::Equal,
+                            Some(_) => Flag::Greater,
+                            None => Flag::Less
                         }
                     },
                     1 => {
                         let [num1, num2] = self.double_pop();
-                        let result: i64 = i64::from_be_bytes(num2.to_be_bytes()) - i64::from_be_bytes(num1.to_be_bytes());
-                        if result > 0 {
-                            self.flag = Flag::Greater;
-                        }
-                        else if result == 0 {
-                            self.flag = Flag::Equal;
-                        }
-                        else {
-                            self.flag = Flag::Less;
+                        self.flag = match i64::from_be_bytes(num2.to_be_bytes()).checked_sub(i64::from_be_bytes(num1.to_be_bytes())) {
+                            Some(0) => Flag::Equal,
+                            Some(n) => {
+                                if n > 0 {
+                                    Flag::Greater
+                                } 
+                                else {
+                                    Flag::Less
+                                }
+                            },
+                            None => Flag::Less
                         }
 
                     },
@@ -216,44 +289,52 @@ impl Machine {
                 }
             },
 
-            OpCode::JMP => self.program_address = self.next_8_bits() as usize,
+            OpCode::JMP => self.program_address = self.stack.pop().unwrap() as usize,
 
             OpCode::JE => {
                 match self.flag {
                     Flag::Equal => {
-                        self.program_address = self.next_8_bits() as usize;
+                        self.program_address = self.next_64_bits() as usize;
                     },
-                    _ => ()
+                    _ => self.program_address += 8
                 } 
             },
 
             OpCode::JNE => {
                 match self.flag {
                     Flag::Greater | Flag::Less => {
-                        self.program_address = self.next_8_bits() as usize;
+                        self.program_address = self.next_64_bits() as usize;
                     },
-                    _ => ()
+                    _ => self.program_address += 8
                 } 
             },
 
             OpCode::JG => {
                 match self.flag {
                     Flag::Greater => {
-                        self.program_address = self.next_8_bits() as usize;
+                        self.program_address = self.next_64_bits() as usize;
                     },
-                    _ => ()
+                    _ => self.program_address += 8
                 } 
             },
 
             OpCode::JL => {
                 match self.flag {
                     Flag::Less => {
-                        self.program_address = self.next_8_bits() as usize;
+                        self.program_address = self.next_64_bits() as usize;
                     },
-                    _ => ()
+                    _ => self.program_address += 8
                 } 
             },
 
+            OpCode::Call => {
+                self.return_addresses.push(self.program_address + 8);
+                self.program_address = self.next_64_bits() as usize;
+            },
+
+            OpCode::Return => {
+                self.program_address = self.return_addresses.pop().unwrap()
+            }
         }
     }
 

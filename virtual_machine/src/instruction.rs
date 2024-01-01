@@ -1,3 +1,5 @@
+//these are the instructions for the vm
+
 #[derive(Debug, PartialEq)]
 pub enum OpCode {
     /*
@@ -49,7 +51,10 @@ pub enum OpCode {
     JE,
     JNE,
     JG,
-    JL
+    JL,
+
+    Call,
+    Return,
 }
 
 impl From<OpCode> for u8 {
@@ -89,7 +94,10 @@ impl From<OpCode> for u8 {
             OpCode::JE => 23,
             OpCode::JNE => 24,
             OpCode::JG => 25,
-            OpCode::JL => 26
+            OpCode::JL => 26,
+
+            OpCode::Call => 27,
+            OpCode::Return => 28
         }
     }
 }
@@ -130,6 +138,9 @@ impl From<u8> for OpCode {
             24 => OpCode::JNE,
             25 => OpCode::JG,
             26 => OpCode::JL,
+
+            27 => OpCode::Call,
+            28 => OpCode::Return,
             
             _ => OpCode::Illegal,
         }
@@ -173,6 +184,9 @@ impl From<&String> for OpCode {
             "JNE" => OpCode::JNE,
             "JG" => OpCode::JG,
             "JL" => OpCode::JL,
+
+            "Call" | "CALL" => OpCode::Call,
+            "Return" | "RETURN" => OpCode::Return,
 
             "Illegal" | "ILLEGAL" | _ => OpCode::Illegal,
         }

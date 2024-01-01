@@ -29,34 +29,32 @@ mod compiler_tests {
         ADDF
         ";
 
-        let mut lex = Lexer::new();
-        let output = lex.lex(program).unwrap();
+        let output = Lexer::lex(program).unwrap();
 
-        assert_eq!(&vec![Token::Word("PUSH".to_string()), Token::NumU(3), Token::NumI(-21), Token::Word("PUSH".to_string()), Token::NumU(2), Token::NumF(-2.1), Token::Word("ADDF".to_string())], output)
+        assert_eq!(vec![Token::OpCode("PUSH".to_string()), Token::NumU(3), Token::NumI(-21), Token::OpCode("PUSH".to_string()), Token::NumU(2), Token::NumF(-2.1), Token::OpCode("ADDF".to_string())], output)
     }
 
     #[test]
     fn basic_parsing() {
-        let program = vec![Token::Word("PUSH".to_string()), Token::NumU(3),  Token::Word("PUSH".to_string()), Token::NumF(-2.1), Token::Word("ADDF".to_string())];
-        let program2 = vec![Token::Word("PUSH".to_string()), Token::NumU(3), Token::Word("PUSH".to_string()), Token::NumF(-2.1), Token::Word("ADDF".to_string())];
+        let program = vec![Token::OpCode("PUSH".to_string()), Token::NumU(3),  Token::OpCode("PUSH".to_string()), Token::NumF(-2.1), Token::OpCode("ADDF".to_string())];
+        let program2 = vec![Token::OpCode("PUSH".to_string()), Token::NumU(3), Token::OpCode("PUSH".to_string()), Token::NumF(-2.1), Token::OpCode("ADDF".to_string())];
 
 
-        let output = Parser::parse(&program).unwrap();
+        let output = Parser::parse(program).unwrap();
 
-        assert_eq!(&program2, output)
+        assert_eq!(program2, output)
     }
 
     #[test]
     fn basic_generating() {
-        let program = vec![Token::Word("Push".to_string()), Token::NumU(3),  Token::Word("PUSH".to_string()), Token::NumF(-2.1), Token::Word("ADDF".to_string())];
+        let program = vec![Token::OpCode("Push".to_string()), Token::NumU(3),  Token::OpCode("PUSH".to_string()), Token::NumF(-2.1), Token::OpCode("ADDF".to_string())];
         let mut binary_code: Vec<u8> = [HEADER.to_vec(), [2, 0, 0, 0, 0, 0, 0 ,0 ,3, 2, 192, 0, 204, 204, 204, 204, 204, 205, 12].to_vec()].concat();
 
 
 
-        let mut gen = Generator::new();
-        let output = gen.generate(&program).unwrap();
+        let output = Generator::generate(program).unwrap();
 
-        assert_eq!(&binary_code, output)
+        assert_eq!(binary_code, output)
     }
 
     #[test]
@@ -72,4 +70,33 @@ mod compiler_tests {
 
         assert_eq!(Ok(()), comp.compile(program))
     }
+
+    #[test]
+    fn lex_func() {
+        let program = 
+        "
+        PUSH -21
+        ADDF
+
+        my_func:
+        PUSH 2
+        RETURN
+        ";
+
+        let output = Lexer::lex(program).unwrap();
+
+        assert_eq!(vec![Token::OpCode("PUSH".to_string()), Token::NumI(-21), Token::OpCode("ADDF".to_string()), Token::Func("my_func".to_string()), Token::OpCode("PUSH".to_string()), Token::NumU(2), Token::OpCode("RETURN".to_string()), ], output)
+    }
+
+    #[test]
+    fn parse_func() {
+        let program = vec![Token::OpCode("PUSH".to_string()), Token::NumI(-21), Token::OpCode("ADDF".to_string()), Token::Func("my_func".to_string()), Token::OpCode("PUSH".to_string()), Token::NumU(2), Token::OpCode("RETURN".to_string()) ];
+        let program2 = vec![Token::OpCode("PUSH".to_string()), Token::NumI(-21), Token::OpCode("ADDF".to_string()), Token::Func("my_func".to_string()), Token::OpCode("PUSH".to_string()), Token::NumU(2), Token::OpCode("RETURN".to_string()) ];
+        
+        let output = Parser::parse(program).unwrap();
+
+        assert_eq!(program2, output)
+    }
+
+
 }
