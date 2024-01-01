@@ -3,6 +3,8 @@ pub mod token;
 pub mod lexer;
 pub mod parser;
 pub mod generator;
+pub mod compiler;
+
 
 
 
@@ -12,6 +14,8 @@ mod compiler_tests {
     use crate::parser::*;
     use crate::lexer::*;
     use crate::token::*;
+    use crate::compiler::*;
+
 
     #[test]
     fn basic_lexing() {
@@ -22,8 +26,8 @@ mod compiler_tests {
         ADDF
         ";
 
-        let mut lex = Lexer::new(program).unwrap();
-        let output = lex.lex().unwrap();
+        let mut lex = Lexer::new();
+        let output = lex.lex(program).unwrap();
 
         assert_eq!(&vec![Token::Word("PUSH".to_string()), Token::NumU(3), Token::NumI(-21), Token::Word("PUSH".to_string()), Token::NumU(2), Token::NumF(-2.1), Token::Word("ADDF".to_string())], output)
     }
@@ -34,8 +38,7 @@ mod compiler_tests {
         let program2 = vec![Token::Word("PUSH".to_string()), Token::NumU(3), Token::Word("PUSH".to_string()), Token::NumF(-2.1), Token::Word("ADDF".to_string())];
 
 
-        let mut par = Parser::new(program).unwrap();
-        let output = par.parse().unwrap();
+        let output = Parser::parse(&program).unwrap();
 
         assert_eq!(&program2, output)
     }
@@ -46,9 +49,23 @@ mod compiler_tests {
         let binary_code: Vec<u8> = vec![2, 0, 0, 0, 0, 0, 0 ,0 ,3, 2, 192, 0, 204, 204, 204, 204, 204, 205, 12];
 
 
-        let mut gen = Generator::new(program).unwrap();
-        let output = gen.generate().unwrap();
+        let mut gen = Generator::new();
+        let output = gen.generate(&program).unwrap();
 
         assert_eq!(&binary_code, output)
+    }
+
+    #[test]
+    fn basic_compiling() {
+        let mut comp = Compiler::new("test.nar".to_string());
+        let program = "
+            PUSH 2.0
+            PUSH 2.5
+            ADDF
+            PUSH 5.0
+            DIVF
+        ";
+
+        assert_eq!(Ok(()), comp.compile(program))
     }
 }

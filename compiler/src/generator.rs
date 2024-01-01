@@ -3,30 +3,29 @@ extern crate virtual_machine;
 use std::fmt::Error;
 
 use crate::{error::CompError, token::Token};
-use virtual_machine::instruction::OpCode;
+use virtual_machine::{instruction::OpCode, vm::HEADER};
 
 pub struct Generator {
-    pub input: Vec<Token>,
     pub output: Vec<u8>
 }
 
 impl Generator {
-    pub fn new(input: Vec<Token>) -> Result<Generator, CompError> {
-        if input.is_empty() {
-            return Err(CompError::UnexpectedEOF("Input  is empty".into()));
-        }
-
-        Ok(Generator { input, output: Vec::new() })
+    pub fn new() -> Generator {
+        Generator { output: HEADER.to_vec() }
     }
 
-    pub fn generate(&mut self) -> Result<&Vec<u8>, CompError> {
+    pub fn generate(&mut self, input: &Vec<Token>) -> Result<&Vec<u8>, CompError> {
+        if input.is_empty() {
+            return Err(CompError::UnexpectedEOF("Input is empty".into()));
+        }
+
         let mut index = 0;
 
         loop {
-            if index >= self.input.len() {
+            if index >= input.len() {
                 break
             }
-            match &self.input[index] {
+            match &input[index] {
                 Token::Word(word) => {
                     self.output.push(OpCode::from(word).into())
                 },

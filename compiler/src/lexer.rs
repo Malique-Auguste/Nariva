@@ -3,50 +3,36 @@ use std::fmt::Error;
 use crate::{error::CompError, token::Token};
 
 pub struct Lexer {
-    pub input: Vec<char>,
     pub output: Vec<Token>
 }
 
 impl Lexer {
-    pub fn new<S: Into<String>>(input: S) -> Result<Lexer, CompError> {
+    pub fn new() -> Lexer{
+
+        Lexer { output: Vec::new()}
+    }
+
+    pub fn lex<S: Into<String>>(&mut self, input: S ) -> Result<&Vec<Token>, CompError> {
         let input: Vec<char> = input.into().chars().collect();
+        let mut index = 0;
 
         if input.is_empty() {
             return Err(CompError::UnexpectedEOF("Input is empty".into()));
         }
 
-        Ok(Lexer { input, output: Vec::new() })
-    }
-
-    pub fn lex(&mut self) -> Result<&Vec<Token>, CompError> {
-
         loop {
-            if self.input.len() == 0 {
+            if input.len() <= index {
                 break;
             }
 
             self.output.push(  
-                match self.input[0]{
-                    'a'..='z' | 'A'..='Z' => {
-                        let (word, index) = self.get_word();
+                match input[index]{
+                    'a'..='z' | 'A'..='Z' => self.get_word(&input, &mut index),
 
-                        self.input.drain(0..index);
-                        word
-                    },
-
-                    '0'..='9' | '+' | '-' => {
-                        match self.get_num() {
-                            Ok((num, index)) => {
-                                self.input.drain(0..index);
-                                num
-                            },
-
-                            Err(e) => return Err(e)
-                        }
-                    },
+                    '0'..='9' | '+' | '-' => self.get_num(&input, &mut index),
 
                     ' ' | '\t' | '\n' | _ => {
-                        self.input.remove(0);
+                        index += 1;
                         continue
                     },
                 }
@@ -57,65 +43,65 @@ impl Lexer {
 
     }
 
-    pub fn get_word(&self) -> (Token, usize) {
-        let mut word = String::from(self.input[0]);
-        let mut index = 1;
+    fn get_word(&self, input: &Vec<char>, index: &mut usize) -> Token {
+        let mut word = String::from(input[*index]);
+        *index += 1;
 
         loop {
-            if index == self.input.len() {
-                return (Token::Word(word), index)
+            if *index == input.len() {
+                return Token::Word(word)
             }
 
-            match self.input[index] {
+            match input[*index] {
                 ' ' | '\t' | '\n' => {
-                    index += 1;
-                    return (Token::Word(word), index)
+                    *index += 1;
+                    return Token::Word(word)
                 },
                 _ => {
-                    word.push(self.input[index]);
-                    index += 1;
+                    word.push(input[*index]);
+                    *index += 1;
                 }
            }
         }
     }
 
-    pub fn get_num(&self) -> Result<(Token, usize), CompError> {
-        let mut num = String::from(self.input[0]);
-        let mut index = 1;
-
+    pub fn get_num(&self, input: &Vec<char>, index: &mut usize) -> Token {
+        let mut num = String::from(input[*index]);
+        *index += 1;
+        
         loop {
-            if index == self.input.len() {
+            if *index == input.len() {
                 break
             }
 
-            match self.input[index] {
+            match input[*index] {
                 '0'..='9' | '.' | '_' => {
-                    num.push(self.input[index]);
-                    index += 1;
+                    num.push(input[*index]);
+                    *index += 1;
                 },
                 _ => {
-                    index += 1;
+                    *index += 1;
                     break
                 },
            }
         }
 
         match num.parse::<u64>() {
-            Ok(n) => return Ok((Token::NumU(n), index)),
+            Ok(n) => return Token::NumU(n),
             Err(_) => ()
         };
 
         match num.parse::<i64>() {
-            Ok(n) => return Ok((Token::NumI(n), index)),
+            Ok(n) => return Token::NumI(n),
             Err(_) => ()
         };
 
         match num.parse::<f64>() {
-            Ok(n) => return Ok((Token::NumF(n), index)),
+            Ok(n) => return Token::NumF(n),
             Err(_) => ()
         };
 
-        Err(CompError::Impossible("Should not be able to reach here".to_string()))
+        unreachable!()
 
     }
 

@@ -2,29 +2,27 @@ use std::fmt::Error;
 
 use crate::{error::CompError, token::Token};
 
-pub struct Parser {
-    pub program: Vec<Token>,
-}
+pub struct Parser;
 
 impl Parser {
-    pub fn new(program: Vec<Token>) -> Result<Parser, CompError> {
+    pub fn new() -> Parser {
+        Parser
+    }
+
+    pub fn parse(program: &Vec<Token>) -> Result<&Vec<Token>, CompError> {
         if program.is_empty() {
             return Err(CompError::UnexpectedEOF("Input program is empty".into()));
         }
-
-        Ok(Parser { program })
-    }
-
-    pub fn parse(&mut self) -> Result<&Vec<Token>, CompError> {
+        
         let mut index = 0;
 
         loop {
 
-            if self.program.len() == index {
+            if program.len() == index {
                 break;
             }
 
-            match &self.program[index]{
+            match &program[index]{
                 Token::Word(word) => {
                     match word.as_str() {
                         "Illegal" | "Halt" | "Pop" | 
@@ -43,7 +41,7 @@ impl Parser {
 
                         "Push" | "PUSH" => {
 
-                            if self.program.len() > index + 1 && self.program[index+1].is_num()  {
+                            if program.len() > index + 1 && program[index+1].is_num()  {
                                 index += 2
                             }
 
@@ -61,7 +59,7 @@ impl Parser {
             }
         }
 
-        return Ok(&self.program)
+        return Ok(program)
 
     }
 }
