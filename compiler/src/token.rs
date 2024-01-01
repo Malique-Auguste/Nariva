@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Word (String),
     NumU (u64),

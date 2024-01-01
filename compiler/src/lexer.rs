@@ -18,12 +18,15 @@ impl Lexer {
         Ok(Lexer { input, output: Vec::new() })
     }
 
-    pub fn lex(&mut self) -> Result<Vec<Token>, CompError> {
-        let mut current_char: char = self.input[0];
+    pub fn lex(&mut self) -> Result<&Vec<Token>, CompError> {
 
         loop {
+            if self.input.len() == 0 {
+                break;
+            }
+
             self.output.push(  
-                match current_char{
+                match self.input[0]{
                     'a'..='z' | 'A'..='Z' => {
                         let (word, index) = self.get_word();
 
@@ -42,13 +45,15 @@ impl Lexer {
                         }
                     },
 
-                    ' ' | '\t' | '\n' => {
+                    ' ' | '\t' | '\n' | _ => {
                         self.input.remove(0);
                         continue
                     },
                 }
             )
-        }
+        };
+
+        return Ok(&self.output)
 
     }
 
@@ -57,6 +62,10 @@ impl Lexer {
         let mut index = 1;
 
         loop {
+            if index == self.input.len() {
+                return (Token::Word(word), index)
+            }
+
             match self.input[index] {
                 ' ' | '\t' | '\n' => {
                     index += 1;
@@ -75,8 +84,12 @@ impl Lexer {
         let mut index = 1;
 
         loop {
+            if index == self.input.len() {
+                break
+            }
+
             match self.input[index] {
-                '0'..='9' | '.'  => {
+                '0'..='9' | '.' | '_' => {
                     num.push(self.input[index]);
                     index += 1;
                 },
