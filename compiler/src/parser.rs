@@ -1,5 +1,7 @@
 use std::{fmt::{Error, format}, collections::HashMap};
 
+use virtual_machine::vm::HEADER;
+
 use crate::{error::CompError, token::Token};
 
 //ensures that tokens are arranged in a certain order / obey certain rules
@@ -54,11 +56,13 @@ impl Parser {
                 break;
             }
 
+            println!("{:?}", program[index]);
+
             match &program[index]{
                 Token::OpCode(word) => {
                     match word.as_str() {
                         "Illegal" | "Halt" | "Pop" | 
-                        "AddU" | "SubU" |"MulU" | "DivU" |
+                        "AddU" | "SubU" |"MulU" | "DivU" | 
                         "AddI" | "SubI" |"MulI" | "DivI" |
                         "AddF" | "SubF" |"MulF" | "DivF" |
                         "Shift" | "BitAnd" | "BitOr" | "BitXor" | "BitNot" |
@@ -69,11 +73,14 @@ impl Parser {
                         "ADDF" | "SUBF" |"MULF" | "DIVF" |
                         "SHIFT" | "BITAND" | "BITOR" | "BITXOR" | "BITNOT" |
                         
-                        "CMP" | "JMP" | "Return" | "RETURN"=> {
+                        "CMP" | "JMP" | "Return" | "RETURN" |
+                        
+                        "ModU" | "ModI" | "ModF" |
+                        "MODU" | "MODI" | "MODF" => {
                             index += 1
                         },
 
-                        "Push" | "PUSH" | "JE" | "JNE" | "JG" | "JL" => {
+                        "Push" | "PUSH" | "JE" | "JNE" | "JG" | "JL" | "PRINT" | "Print"=> {
 
                             if program.len() > index + 1 && program[index+1].is_num()  {
                                 index += 2
@@ -89,9 +96,12 @@ impl Parser {
                             if program.len() > index + 1 {
                                 index += 1;
                                 match &program[index] {
-                                    Token::Func(name) => {
+                                    Token::OpCode(name) => {
                                         match function_record.get(name) {
-                                            Some(func_index) => program[index] = Token::NumU(*func_index as u64),
+                                            Some(func_index) => {
+                                                program[index] = Token::NumU(*func_index as u64 + HEADER.len() as u64);
+                                                index += 1;
+                                            },
                                             None => return Err(CompError::UnexpectedChar(format!("Function '{:?}' doesnt exist", name)))
                                         }
                                     },
@@ -110,7 +120,7 @@ impl Parser {
                     }
                 },
 
-                Token::Func(f) => unreachable!(),
+                Token::Func(_) => unreachable!(),
 
                 Token::NumU(_) | Token::NumI(_) | Token::NumF(_) => return Err(CompError::UnexpectedChar("Numbers must only proceed words".to_string()))
 

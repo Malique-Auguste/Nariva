@@ -68,7 +68,7 @@ mod compiler_tests {
             DIVF
         ";
 
-        assert_eq!(Ok(()), comp.compile(program))
+        assert_eq!(Ok(()), comp.compile(program, true))
     }
 
     #[test]
@@ -98,5 +98,37 @@ mod compiler_tests {
         assert_eq!(program2, output)
     }
 
+    #[test]
+    fn compile_func() {
+        let mut comp = Compiler::new("../nar files/fizzbuzz.nar".to_string());
 
+        let program = "
+            PUSH 25
+            PUSH 25
+            CALL fizz
+            CALL buzz
+            HALT
+
+            fizz:
+            PUSH 3
+            MODU
+            PUSH 0
+            CMP
+            JNE 8
+            PUSH 46
+            PRINT 3
+            RETURN
+
+            buzz:
+            PUSH 5
+            MODU
+            PUSH 0
+            CMP
+            PUSH 42
+            PRINT 3
+            RETURN
+        ";
+
+        assert_eq!(Ok(()), comp.compile(program, true))
+    }
 }

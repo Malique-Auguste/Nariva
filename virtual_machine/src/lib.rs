@@ -158,5 +158,17 @@ mod vm_tests {
         let mut machine = Machine::new();
         assert_eq!(40, machine.run(program, true))
     }
+
+    #[test]
+    fn printing() {
+        let program = [HEADER.to_vec(), vec![
+            OpCode::Push.into(), 0,0,0,0,0,0,0,10,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,97,
+            OpCode::Print.into(), 0,0,0,0,0,0,0,3
+        ]].concat();
+
+        let mut machine = Machine::new();
+        assert_eq!(10, machine.run(program, false))
+    }
     
 }

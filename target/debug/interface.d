@@ -1,0 +1,1 @@
+C:\Users\maliq\Projects\Nariva\target\debug\interface.exe: C:\Users\maliq\Projects\Nariva\interface\src\main.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\flag.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\instruction.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\lib.rs C:\Users\maliq\Projects\Nariva\virtual_machine\src\vm.rs

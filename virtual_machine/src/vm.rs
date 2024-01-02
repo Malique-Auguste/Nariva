@@ -334,6 +334,34 @@ impl Machine {
 
             OpCode::Return => {
                 self.program_address = self.return_addresses.pop().unwrap()
+            },
+
+            OpCode::ModU => {
+                let [num1, num2] = self.double_pop();
+                self.stack.push(num2 % num1)
+            },
+
+            OpCode::ModI => {
+                let [num1, num2] = self.double_pop();
+                let [num1, num2] = [i64::from_be_bytes(num1.to_be_bytes()), i64::from_be_bytes(num2.to_be_bytes())];
+                self.stack.push(u64::from_be_bytes((num2 % num1).to_be_bytes()))
+            },
+
+            OpCode::ModF => {
+                let [num1, num2] = self.double_pop();
+                let [num1, num2] = [f64::from_be_bytes(num1.to_be_bytes()), f64::from_be_bytes(num2.to_be_bytes())];
+                self.stack.push(u64::from_be_bytes((num2 % num1).to_be_bytes()))
+            },
+
+            OpCode::Print => {
+                match self.next_64_bits() {
+                    0 => println!("{}", self.stack.pop().unwrap() as u64),
+                    1 => println!("{}", self.stack.pop().unwrap() as i64),
+                    2 => println!("{}", self.stack.pop().unwrap() as f64),
+                    3 => println!("{}", self.stack.pop().unwrap() as u8 as char),
+                    _ => unimplemented!()
+
+                }
             }
         }
     }

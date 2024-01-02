@@ -55,6 +55,11 @@ pub enum OpCode {
 
     Call,
     Return,
+
+    ModU,
+    ModI,
+    ModF,
+    Print
 }
 
 impl From<OpCode> for u8 {
@@ -97,7 +102,12 @@ impl From<OpCode> for u8 {
             OpCode::JL => 26,
 
             OpCode::Call => 27,
-            OpCode::Return => 28
+            OpCode::Return => 28,
+
+            OpCode::ModU => 29,
+            OpCode::ModI => 30,
+            OpCode::ModF => 31,
+            OpCode::Print => 32
         }
     }
 }
@@ -141,6 +151,12 @@ impl From<u8> for OpCode {
 
             27 => OpCode::Call,
             28 => OpCode::Return,
+
+            29 => OpCode::ModU,
+            30 => OpCode::ModI,
+            31 => OpCode::ModF,
+
+            32 => OpCode::Print,
             
             _ => OpCode::Illegal,
         }
@@ -187,6 +203,12 @@ impl From<&String> for OpCode {
 
             "Call" | "CALL" => OpCode::Call,
             "Return" | "RETURN" => OpCode::Return,
+
+            "ModU" | "MODU" => OpCode::ModU,
+            "ModI" | "MODI" => OpCode::ModI,
+            "ModF" | "MODF" => OpCode::ModF,
+
+            "Print" | "PRINT" => OpCode::Print,
 
             "Illegal" | "ILLEGAL" | _ => OpCode::Illegal,
         }

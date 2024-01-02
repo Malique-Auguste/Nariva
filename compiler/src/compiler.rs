@@ -12,10 +12,14 @@ impl Compiler {
         Compiler { file_path}
     }
 
-    pub fn compile<S: Into<String>>(&mut self, input: S) -> Result<(), CompError> {
+    pub fn compile<S: Into<String>>(&mut self, input: S, show: bool) -> Result<(), CompError> {
         let unparsed_tokens = Lexer::lex(input).unwrap();
+        println!("UT: {:?}\n", unparsed_tokens);
         let parsed_tokens = Parser::parse(unparsed_tokens).unwrap();
+        println!("\nPT: {:?}", parsed_tokens);
+
         let binary = Generator::generate(parsed_tokens).unwrap();
+
 
         let mut file = fs::File::create(&self.file_path).unwrap();
 

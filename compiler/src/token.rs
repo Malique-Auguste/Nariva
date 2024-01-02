@@ -44,4 +44,5 @@ impl Token {
             _ => false
         }
     }
+
 }
