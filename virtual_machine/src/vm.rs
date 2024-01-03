@@ -76,12 +76,18 @@ impl Machine {
         let opcode = self.next_8_bits().into();
 
         if self.show {
-            println!("{:?}, {}", opcode, self.program_address - HEADER.len());
+            println!("{:?}, {}, {}", opcode, self.program_address, self.program_address - HEADER.len());
         }
 
         match opcode {
             //Ends program if a HALT or ILLEGAL upcode is found
-            OpCode::Illegal => unimplemented!("program address: {}, {:?}", self.program_address, self.stack),
+            OpCode::Illegal => {
+                println!("\nIllegal / unknown upcode reached at {}, current stack: {:?}", self.program_address, self.stack);
+                println!("Program: {:?}\nReturn Address: {:?}", self.program, self.return_addresses);
+                println!("Flag: {:?}", self.flag);
+                panic!()
+            },
+
             OpCode::Halt => self.program_address = self.program.len(),
 
             /*
@@ -217,7 +223,7 @@ impl Machine {
             //Shifts th ebits in the number to the left or right depenidng on the number that immediateley follows the opcode
             OpCode::Shift => {
                 let [num1, num2] = self.double_pop();
-                if self.next_8_bits() == 0 {
+                if self.next_64_bits() == 0 {
                     self.stack.push(num2 << num1)
                 }
                 else {
@@ -247,7 +253,7 @@ impl Machine {
             },
 
             OpCode::CMP => {
-                match self.next_8_bits() {
+                match self.next_64_bits() {
                     0 => {
                         let [num1, num2] = self.double_pop();
                         self.flag =  match num2.checked_sub(num1) {
@@ -294,7 +300,8 @@ impl Machine {
             OpCode::JE => {
                 match self.flag {
                     Flag::Equal => {
-                        self.program_address = self.next_64_bits() as usize;
+                        //Minus 8 bits because next_64_bits() already increases address by 8
+                        self.program_address += self.next_64_bits() as usize - 9;
                     },
                     _ => self.program_address += 8
                 } 
@@ -303,7 +310,8 @@ impl Machine {
             OpCode::JNE => {
                 match self.flag {
                     Flag::Greater | Flag::Less => {
-                        self.program_address = self.next_64_bits() as usize;
+                        //Minus 8 bits because next_64_bits() already increases address by 8 and next iteration goes to opcode after given address
+                        self.program_address += self.next_64_bits() as usize - 9;
                     },
                     _ => self.program_address += 8
                 } 
@@ -312,7 +320,7 @@ impl Machine {
             OpCode::JG => {
                 match self.flag {
                     Flag::Greater => {
-                        self.program_address = self.next_64_bits() as usize;
+                        self.program_address += self.next_64_bits() as usize - 9;
                     },
                     _ => self.program_address += 8
                 } 
@@ -321,7 +329,7 @@ impl Machine {
             OpCode::JL => {
                 match self.flag {
                     Flag::Less => {
-                        self.program_address = self.next_64_bits() as usize;
+                        self.program_address += self.next_64_bits() as usize - 9;
                     },
                     _ => self.program_address += 8
                 } 
@@ -362,6 +370,12 @@ impl Machine {
                     _ => unimplemented!()
 
                 }
+            },
+
+            OpCode::Dupli => {
+                let num = self.stack.pop().unwrap();
+                self.stack.push(num);
+                self.stack.push(num)
             }
         }
     }

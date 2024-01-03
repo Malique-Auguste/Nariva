@@ -100,7 +100,7 @@ mod vm_tests {
         let program = [HEADER.to_vec(), vec![
             OpCode::Push.into(), 0,0,0,0,0,0,0,15,
             OpCode::Push.into(), 0,0,0,0,0,0,0,4,
-            OpCode::Shift.into(), 0,
+            OpCode::Shift.into(), 0,0,0,0,0,0,0,0,
 
             OpCode::Push.into(), 0,0,0,0,0,0,0,15,
             OpCode::BitAnd.into(),
@@ -124,10 +124,10 @@ mod vm_tests {
         let program = [HEADER.to_vec(), vec![
             OpCode::Push.into(), 0,0,0,0,0,0,0,15,
             OpCode::Push.into(), 0,0,0,0,0,0,0,10,
-            OpCode::CMP.into(), 0,
+            OpCode::CMP.into(), 0,0,0,0,0,0,0,0,
             OpCode::JE.into(),
             OpCode::JL.into(),
-            OpCode::JG.into(), 41,
+            OpCode::JG.into(), 0,0,0,0,0,0,0,41,
             OpCode::Halt.into(),
             OpCode::Push.into(), 0,0,0,0,0,0,0,40, 
             OpCode::JMP.into()
@@ -143,9 +143,9 @@ mod vm_tests {
         let program = [HEADER.to_vec(), vec![
             OpCode::Push.into(), 0,0,0,0,0,0,0,12,
             OpCode::Push.into(), 0,0,0,0,0,0,0,17,
-            OpCode::CMP.into(), 0,
-            OpCode::JG.into(), 0,0,0,0,0,0,0,54,
-            OpCode::Call.into(), 0,0,0,0,0,0,0,55,
+            OpCode::CMP.into(), 0,0,0,0,0,0,0,0,
+            OpCode::JG.into(), 0,0,0,0,0,0,0,61,
+            OpCode::Call.into(), 0,0,0,0,0,0,0,62,
             OpCode::Halt.into(),
 
 

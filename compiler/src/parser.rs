@@ -1,6 +1,7 @@
-use std::{fmt::{Error, format}, collections::HashMap};
+use core::num;
+use std::{fmt::{Error, format}, collections::HashMap, convert::TryInto};
 
-use virtual_machine::vm::HEADER;
+use virtual_machine::{vm::HEADER, instruction::OpCode};
 
 use crate::{error::CompError, token::Token};
 
@@ -35,10 +36,14 @@ impl Parser {
                 },
 
                 Token::NumU(_) | Token::NumI(_) | Token::NumF(_) => {
-                    if program[program_index - 1].is_push() || program[program_index - 1].is_conditional_jmp() {
+                    binary_index += 7
+                },
+
+                Token::OpCode(s) => {
+                    if s == "Call" || s == "CALL" {
                         binary_index += 7
                     }
-                }
+                },
 
 
                 _ => ()
@@ -48,6 +53,8 @@ impl Parser {
             binary_index += 1;
         }
 
+        //panic!(format!("{:?}", function_record));
+
         let mut index = 0;
         //general loop
         loop {
@@ -56,38 +63,37 @@ impl Parser {
                 break;
             }
 
-            println!("{:?}", program[index]);
-
             match &program[index]{
                 Token::OpCode(word) => {
                     match word.as_str() {
-                        "Illegal" | "Halt" | "Pop" | 
-                        "AddU" | "SubU" |"MulU" | "DivU" | 
-                        "AddI" | "SubI" |"MulI" | "DivI" |
-                        "AddF" | "SubF" |"MulF" | "DivF" |
-                        "Shift" | "BitAnd" | "BitOr" | "BitXor" | "BitNot" |
-                        
-                        "ILLEGAL" | "HALT" | "POP" | 
-                        "ADDU" | "SUBU" |"MULU" | "DIVU" |
-                        "ADDI" | "SUBI" |"MULI" | "DIVI" |
-                        "ADDF" | "SUBF" |"MULF" | "DIVF" |
-                        "SHIFT" | "BITAND" | "BITOR" | "BITXOR" | "BITNOT" |
-                        
-                        "CMP" | "JMP" | "Return" | "RETURN" |
-                        
-                        "ModU" | "ModI" | "ModF" |
-                        "MODU" | "MODI" | "MODF" => {
-                            index += 1
-                        },
-
-                        "Push" | "PUSH" | "JE" | "JNE" | "JG" | "JL" | "PRINT" | "Print"=> {
+                        "Push" | "PUSH" | "CMP" | "PRINT" | "Print"=> {
 
                             if program.len() > index + 1 && program[index+1].is_num()  {
                                 index += 2
                             }
 
                             else {
-                                return Err(CompError::UnexpectedChar(format!("Number needed after a '{:?}' opcode", word)))
+                                return Err(CompError::UnexpectedChar(format!("Number needed after a '{}' opcode", word)))
+                            }
+                        },
+
+                        "JE" | "JNE" | "JG" | "JL" => {
+
+                            if program.len() > index + 1 && program[index+1].is_num()  {
+                                match program[index + 1] {
+                                    Token::NumU(num) => {
+                                        let num_clone = num as usize;
+                                        program[index + 1] = Token::NumU(Parser::get_jump_index(num_clone, &program, index).unwrap())
+                                    },
+                                    _ => return Err(CompError::UnexpectedChar(format!("unsigned Number needed after a '{}' opcode", word)))
+
+                                }
+                                index += 2
+
+                            }
+
+                            else {
+                                return Err(CompError::UnexpectedChar(format!("unsigned Number needed after a '{}' opcode", word)))
                             }
                         },
 
@@ -99,24 +105,31 @@ impl Parser {
                                     Token::OpCode(name) => {
                                         match function_record.get(name) {
                                             Some(func_index) => {
-                                                program[index] = Token::NumU(*func_index as u64 + HEADER.len() as u64);
+                                                //This gives us the location right before the first line of the function
+                                                //When vm runs it executes the instruction after this and ths executes the first part of the function
+                                                program[index] = Token::NumU(*func_index as u64 + HEADER.len() as u64 - 1);
                                                 index += 1;
                                             },
-                                            None => return Err(CompError::UnexpectedChar(format!("Function '{:?}' doesnt exist", name)))
+                                            None => return Err(CompError::UnexpectedChar(format!("Function '{}' doesnt exist", name)))
                                         }
                                     },
 
-                                    _ => return Err(CompError::UnexpectedChar(format!("Function needed after a '{:?}' opcode", word)))
+                                    _ => return Err(CompError::UnexpectedChar(format!("Function needed after a '{}' opcode", word)))
 
                                 }
                             }
 
                             else {
-                                return Err(CompError::UnexpectedChar(format!("Function needed after a '{:?}' opcode", word)))
+                                return Err(CompError::UnexpectedChar(format!("Function needed after a '{}' opcode", word)))
                             }
                         }
 
-                        _ => return Err(CompError::UnexpectedChar(format!("'{:?}' opcode doesn't exist", word)))
+                        _ => {
+                            match word.into() {
+                                OpCode::Illegal => return Err(CompError::UnexpectedChar(format!("'{}' opcode doesn't exist", word))),
+                                _ => index += 1
+                            }
+                        }
                     }
                 },
 
@@ -129,5 +142,36 @@ impl Parser {
 
         return Ok(program)
 
+    }
+
+    fn get_jump_index(jump_distance: usize, program: &Vec<Token>, mut current_index: usize) -> Result<u64, CompError> {
+        let mut num_of_opcodes = 0;
+        let mut binary_index = 0;
+        println!("Current I: {:?}, Bin: {}", program[current_index], binary_index);
+
+        
+        while num_of_opcodes < jump_distance {
+
+            current_index += 1;
+
+            println!("Current I: {:?}, Bin: {}", program[current_index], binary_index);
+
+
+            if current_index >= program.len() {
+                return Err(CompError::UnexpectedEOF("Jump to distance greater than file".to_string()))
+            }
+
+            binary_index += 1;
+
+
+            match program[current_index] {
+                Token::OpCode(_) => num_of_opcodes += 1,
+                Token::NumF(_) | Token::NumI(_) | Token::NumU(_) => binary_index += 7,
+                _ => continue
+            }
+            
+        }
+
+        Ok(binary_index as u64)
     }
 }

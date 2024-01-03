@@ -24,6 +24,7 @@ impl Token {
         }
     }
 
+
     pub fn is_conditional_jmp(&self) -> bool {
         match self {
             Token::OpCode(s) => {

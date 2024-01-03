@@ -59,7 +59,9 @@ pub enum OpCode {
     ModU,
     ModI,
     ModF,
-    Print
+    Print,
+
+    Dupli
 }
 
 impl From<OpCode> for u8 {
@@ -107,7 +109,10 @@ impl From<OpCode> for u8 {
             OpCode::ModU => 29,
             OpCode::ModI => 30,
             OpCode::ModF => 31,
-            OpCode::Print => 32
+            OpCode::Print => 32,
+
+            //Duplicate
+            OpCode::Dupli => 33
         }
     }
 }
@@ -157,6 +162,8 @@ impl From<u8> for OpCode {
             31 => OpCode::ModF,
 
             32 => OpCode::Print,
+
+            33 => OpCode::Dupli,
             
             _ => OpCode::Illegal,
         }
@@ -209,6 +216,7 @@ impl From<&String> for OpCode {
             "ModF" | "MODF" => OpCode::ModF,
 
             "Print" | "PRINT" => OpCode::Print,
+            "Dupli" | "DUPLI" => OpCode::Dupli,
 
             "Illegal" | "ILLEGAL" | _ => OpCode::Illegal,
         }
