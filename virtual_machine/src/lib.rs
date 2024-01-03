@@ -170,5 +170,20 @@ mod vm_tests {
         let mut machine = Machine::new();
         assert_eq!(10, machine.run(program, false))
     }
+
+    fn neg_jump() {
+        let program = [HEADER.to_vec(), vec![
+            OpCode::Push.into(), 0,0,0,0,0,0,0,10,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,5,
+            OpCode::CMP.into(),
+            OpCode::JNE.into(), 2,
+            OpCode::Halt.into(),
+            OpCode::Push.into(), 0,0,0,0,0,0,0,5,
+            OpCode::Dupli.into(),
+            OpCode::CMP.into(),
+            OpCode::JE.into(), 255, 255, 255, 255, 255, 255, 255, 252,
+            OpCode::Print.into(), 0,0,0,0,0,0,0,3
+        ]].concat();
+    }
     
 }

@@ -15,6 +15,7 @@ pub struct Machine {
     //numbers stored by the vm / working memory / ram
     pub stack: Vec<u64>,
     pub return_addresses: Vec<usize>,
+    pub registers: [u64; 4],
 
     //whether or not to print out instructions being executed
     show: bool,
@@ -30,6 +31,7 @@ impl Machine {
             program_address: 0,
             stack: Vec::new(),
             return_addresses: Vec::new(),
+            registers: [0,0,0,0],
             show: false,
             flag: Flag::None
         }
@@ -295,13 +297,12 @@ impl Machine {
                 }
             },
 
-            OpCode::JMP => self.program_address = self.stack.pop().unwrap() as usize,
+            OpCode::JMP => unimplemented!(),
 
             OpCode::JE => {
                 match self.flag {
                     Flag::Equal => {
-                        //Minus 8 bits because next_64_bits() already increases address by 8
-                        self.program_address += self.next_64_bits() as usize - 9;
+                        self.jump()
                     },
                     _ => self.program_address += 8
                 } 
@@ -310,8 +311,7 @@ impl Machine {
             OpCode::JNE => {
                 match self.flag {
                     Flag::Greater | Flag::Less => {
-                        //Minus 8 bits because next_64_bits() already increases address by 8 and next iteration goes to opcode after given address
-                        self.program_address += self.next_64_bits() as usize - 9;
+                        self.jump()
                     },
                     _ => self.program_address += 8
                 } 
@@ -320,7 +320,7 @@ impl Machine {
             OpCode::JG => {
                 match self.flag {
                     Flag::Greater => {
-                        self.program_address += self.next_64_bits() as usize - 9;
+                        self.jump()
                     },
                     _ => self.program_address += 8
                 } 
@@ -329,7 +329,7 @@ impl Machine {
             OpCode::JL => {
                 match self.flag {
                     Flag::Less => {
-                        self.program_address += self.next_64_bits() as usize - 9;
+                        self.jump()
                     },
                     _ => self.program_address += 8
                 } 
@@ -376,10 +376,35 @@ impl Machine {
                 let num = self.stack.pop().unwrap();
                 self.stack.push(num);
                 self.stack.push(num)
+            },
+
+            OpCode::Store => {
+                let register_index = self.next_64_bits() as usize;
+                self.registers[register_index] = self.stack.pop().unwrap()
+            }
+
+            OpCode::Load => {
+                let register_index = self.next_64_bits() as usize;
+                self.stack.push(self.registers[register_index]);
             }
         }
     }
 
+    fn jump(&mut self) {
+        let jump_bits = self.next_64_bits();
+        let int_jump_dist = i64::from_be_bytes(jump_bits.to_be_bytes());
+
+        //Minus 8 bits because next_64_bits() already increases address by 8 and next iteration goes to opcode after given address
+        self.program_address -= 9;
+
+        if int_jump_dist > 0 {
+            self.program_address += int_jump_dist.abs() as usize
+        }
+        else {
+            self.program_address -= int_jump_dist.abs() as usize
+        }
+
+    }
 
     //Removes and returns the last 2 numbers form the stack
     pub fn double_pop(&mut self) -> [u64; 2] {

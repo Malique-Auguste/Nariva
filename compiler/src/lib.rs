@@ -99,11 +99,11 @@ mod compiler_tests {
     }
 
     #[test]
-    fn compile_func() {
+    fn compile_func1() {
         let mut comp = Compiler::new("../nar files/fizzbuzz.nar".to_string());
 
         let program = "
-            PUSH 16
+            PUSH 30
             DUPLI
             CALL fizz
             CALL buzz
@@ -121,6 +121,66 @@ mod compiler_tests {
 
             buzz:
             PUSH 3
+            MODU
+            PUSH 0
+            CMP 0
+            JNE 3
+            PUSH 66
+            PRINT 3
+            RETURN
+        ";
+
+        assert_eq!(Ok(()), comp.compile(program, true))
+    }
+
+    #[test]
+    fn compile_func2() {
+        let mut comp = Compiler::new("../nar files/fizzbuzz.nar".to_string());
+
+        let program = "
+            PUSH 6
+            STORE 0
+            CALL fizz
+            CALL buzz
+            CALL reduce
+            DUPLI
+            PUSH 0
+            CMP 0
+            JNE -6
+            HALT
+
+            reduce:
+            PUSH 1
+            SUBU
+            RETURN
+
+            fizz:
+            LOAD 0
+            PUSH 3
+            MODU
+            PUSH 0
+            STORE 1
+            LOAD 1
+            CMP 0
+            
+
+            buzz:
+            DUPLI
+            PUSH 5
+            MODU
+            PUSH 0
+            CMP 0
+            JNE 5
+            PUSH 66
+            PRINT 3
+            PUSH 2000
+            JNE 2
+            PUSH 1000
+            RETURN
+
+            self:
+            DUPLI
+            PUSH 5
             MODU
             PUSH 0
             CMP 0
