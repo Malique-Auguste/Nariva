@@ -140,52 +140,59 @@ mod compiler_tests {
         let program = "
             PUSH 6
             STORE 0
-            CALL fizz
-            CALL buzz
-            CALL reduce
+            PUSH 1
             DUPLI
-            PUSH 0
+            CALL fizz
+            DUPLI
+            CALL buzz
+            DUPLI
+            CALL self
+            CALL increment
+            DUPLI
+            LOAD 0
             CMP 0
-            JNE -6
+            JNE -12
             HALT
 
-            reduce:
+            increment:
             PUSH 1
-            SUBU
+            ADDU
             RETURN
 
             fizz:
-            LOAD 0
             PUSH 3
             MODU
             PUSH 0
             STORE 1
             LOAD 1
             CMP 0
-            
-
-            buzz:
-            DUPLI
-            PUSH 5
-            MODU
-            PUSH 0
-            CMP 0
-            JNE 5
-            PUSH 66
+            JNE 3
+            PUSH 70
             PRINT 3
-            PUSH 2000
-            JNE 2
-            PUSH 1000
             RETURN
-
-            self:
-            DUPLI
+            
+            buzz:
             PUSH 5
             MODU
-            PUSH 0
+            PUSH 66
+            STORE 2
+            LOAD 2
             CMP 0
             JNE 3
             PUSH 66
+            PRINT 3
+            RETURN
+
+            self:
+            LOAD 1
+            PUSH 0
+            CMP 0
+            JE 7
+            LOAD 2
+            PUSH 0
+            CMP 0
+            JE 3            
+            LOAD 0
             PRINT 3
             RETURN
         ";

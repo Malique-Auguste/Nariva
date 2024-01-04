@@ -78,7 +78,7 @@ impl Machine {
         let opcode = self.next_8_bits().into();
 
         if self.show {
-            println!("{:?}, {}, {}", opcode, self.program_address, self.program_address - HEADER.len());
+            println!("{:?}, {}, {}, {:?}, {:?}", opcode, self.program_address, self.program_address - HEADER.len(), self.stack, self.registers);
         }
 
         match opcode {
