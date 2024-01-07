@@ -77,7 +77,7 @@ impl Parser {
                             }
                         },
 
-                        "JE" | "JNE" | "JG" | "JL" => {
+                        "JE" | "JNE" | "JG" | "JL" | "JMP"=> {
 
                             if program.len() > index + 1 && program[index+1].is_num()  {
                                 match program[index + 1] {

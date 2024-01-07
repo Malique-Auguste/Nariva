@@ -35,22 +35,22 @@ mod vm_tests {
     #[test]
     fn math_u() {
         let program: Vec<u8> = [HEADER.to_vec(), vec![
-            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
-            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,6,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,5,
             OpCode::MulU.into(),
 
-            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,3,
             OpCode::DivU.into(),
             
-            OpCode::Push.into(), 0,0,0,0,0,0,0,55,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,8,
             OpCode::SubU.into(),
             
-            OpCode::Push.into(), 0,0,0,0,0,0,0,1,
+            OpCode::Push.into(), 0,0,0,0,0,0,0,3,
             OpCode::AddU.into(),
         ]].concat();
 
         let mut machine = Machine::new();
-        assert_eq!(1, machine.run(program, false))
+        assert_eq!(5, machine.run(program, true))
     }
 
     #[test]

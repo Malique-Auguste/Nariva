@@ -12,10 +12,14 @@ pub struct Machine {
     //current position of the vm in the list of instructions
     pub program_address: usize,
 
-    //numbers stored by the vm / working memory / ram
+    //numbers stored by the vm / working memory
     pub stack: Vec<u64>,
+
+    //stores the program address which the vm returns to after running a function
     pub return_addresses: Vec<usize>,
-    pub registers: [u64; 4],
+
+    //specific spaces to store data
+    pub registers: [u64; 8],
 
     //whether or not to print out instructions being executed
     show: bool,
@@ -31,7 +35,7 @@ impl Machine {
             program_address: 0,
             stack: Vec::new(),
             return_addresses: Vec::new(),
-            registers: [0,0,0,0],
+            registers: [0,0,0,0,0,0,0,0],
             show: false,
             flag: Flag::None
         }
@@ -56,11 +60,18 @@ impl Machine {
         self.program = program;
         self.show = show;
 
+        //checks to make sure file header is correct
         if self.is_nariva_file() {
+            //sets th eprogramm address to the end of the header
             self.program_address = HEADER.len() - 1;
+    
             loop {
                 self.execute_instruction();
 
+                /*if at the end of the program, 
+                if the stack is empty return the largest 64but unsigned interger, 
+                else return the last num on the stack
+                */
                 if self.program_address >= self.program.len() - 1 {
                     return match self.stack.pop() {
                         Some(num) => num,
@@ -78,7 +89,7 @@ impl Machine {
         let opcode = self.next_8_bits().into();
 
         if self.show {
-            println!("{:?}, {}, {}, {:?}, {:?}", opcode, self.program_address, self.program_address - HEADER.len(), self.stack, self.registers);
+            println!("{:?}, {}, {}, {:?}, {:?}, {:?}", opcode, self.program_address, self.program_address - HEADER.len(), self.stack, self.registers, self.flag);
         }
 
         match opcode {
@@ -258,6 +269,7 @@ impl Machine {
                 match self.next_64_bits() {
                     0 => {
                         let [num1, num2] = self.double_pop();
+                        //println!("{:?}", [num1, num2]);
                         self.flag =  match num2.checked_sub(num1) {
                             Some(0) => Flag::Equal,
                             Some(_) => Flag::Greater,
@@ -297,7 +309,8 @@ impl Machine {
                 }
             },
 
-            OpCode::JMP => unimplemented!(),
+            OpCode::JMP => self.jump(),
+
 
             OpCode::JE => {
                 match self.flag {
