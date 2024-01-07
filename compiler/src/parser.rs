@@ -66,7 +66,7 @@ impl Parser {
             match &program[index]{
                 Token::OpCode(word) => {
                     match word.as_str() {
-                        "Push" | "PUSH" | "CMP" | "PRINT" | "Print" | "Load" | "LOAD" | "Store" | "STORE"=> {
+                        "Push" | "PUSH" | "CMP" | "PRINT" | "Print" | "Load" | "LOAD" | "Store" | "STORE" | "PrintSTR" | "PRINTSTR"=> {
 
                             if program.len() > index + 1 && program[index+1].is_num()  {
                                 index += 2
@@ -154,8 +154,8 @@ impl Parser {
         let desired_num_opcodes = desired_num_opcodes.abs();
         let mut current_num_opcodes = 0;
         let mut binary_index:i64 = 0;
-        println!("\nDesires opcodes: {}", desired_num_opcodes);
-        println!("Current I: {:?}, Bin: {}, PrADD: {}", program[current_index], binary_index, current_index);
+        //println!("\nDesires opcodes: {}", desired_num_opcodes);
+        //println!("Current I: {:?}, Bin: {}, PrADD: {}", program[current_index], binary_index, current_index);
 
         if desired_num_opcodes == 0 {
             return  Err(CompError::UnexpectedChar("Desried opcodes cannot be zero".into()));
@@ -199,7 +199,7 @@ impl Parser {
                 _ => continue
             }
 
-            println!("Current I: {:?}, Bin: {}, PrADD: {}", program[current_index], binary_index, current_index);
+            //println!("Current I: {:?}, Bin: {}, PrADD: {}", program[current_index], binary_index, current_index);
 
         }
 

@@ -1,3 +1,5 @@
+use std::process::Output;
+
 use crate::instruction::{OpCode, ByteOps};
 use crate::flag::Flag;
 
@@ -399,6 +401,13 @@ impl Machine {
             OpCode::Load => {
                 let register_index = self.next_64_bits() as usize;
                 self.stack.push(self.registers[register_index]);
+            }
+
+            OpCode::PrintSTR => {
+                let output_len = self.next_64_bits() as usize;
+                let output: Vec<u8> = self.stack.drain((self.stack.len() - output_len)..).map(|c| c as u8).collect();
+                let output = String::from_utf8_lossy(&output);
+                println!("{}", output)
             }
         }
     }

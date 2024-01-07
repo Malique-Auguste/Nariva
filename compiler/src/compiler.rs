@@ -4,12 +4,13 @@ use std::io::Write;
 
 //overarching structure that converts human readable text to machine readable code
 pub struct Compiler {
-    file_path: String
+    file_path: String,
+    output: Vec<u8>
 }
 
 impl Compiler {
     pub fn new (file_path: String ) -> Compiler {
-        Compiler { file_path}
+        Compiler { file_path, output: Vec::new()}
     }
 
     //function that compiles a Nariva program into binary.
@@ -27,15 +28,19 @@ impl Compiler {
         }
 
         //converts parsed tokens into binary data
-        let binary = Generator::generate(parsed_tokens).unwrap();
+        self.output = Generator::generate(parsed_tokens).unwrap();
         if show {
-            println!("\nBin: {:?}\n", binary);
+            println!("\nBin: {:?}\n", self.output);
         }
 
         //writes data to file
         let mut file = fs::File::create(&self.file_path).unwrap();
 
-        file.write_all(&binary).unwrap();
+        file.write_all(&self.output).unwrap();
         Ok(())
+    }
+
+    pub fn get_output(&self) -> &Vec<u8> {
+        &self.output
     }
 }
