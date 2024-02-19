@@ -18,6 +18,7 @@ fn main() {
     //https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Nariva 
     //ansi shadow font
     println!("
+
 ███╗   ██╗ █████╗ ██████╗ ██╗██╗   ██╗ █████╗ 
 ████╗  ██║██╔══██╗██╔══██╗██║██║   ██║██╔══██╗
 ██╔██╗ ██║███████║██████╔╝██║██║   ██║███████║
@@ -65,7 +66,7 @@ What would you like to do?
                 let (file_name, file_data) = match get_file_data(false) {
                     Ok(data) => data,
                     Err(e) => {
-                        println!("Error in reading file: {}\nReloading...", e);
+                        println!("\nError in reading file: {}\nReloading...", e);
                         continue;
                     }
                 };
@@ -73,7 +74,7 @@ What would you like to do?
                 let mut comp = Compiler::new(format!("nar files/{}.binar", file_name));
                 match comp.compile(String::from_utf8_lossy(&file_data), debug_mode) {
                     Ok(_) => println!("\nSuccessfuly compiled: {}.nar", file_name),
-                    Err(e) => println!("Error in compiling: {:?}.\nReloading...", e)
+                    Err(e) => println!("\nError in compiling: {:?}.\nReloading...", e)
                 }
             },
 
@@ -81,7 +82,7 @@ What would you like to do?
                 let (file_name, file_data) = match get_file_data(true) {
                     Ok(data) => data,
                     Err(e) => {
-                        println!("Error in reading file: {}\nReloading...", e);
+                        println!("\nError in reading file: {}\nReloading...", e);
                         continue;
                     }
                 };
@@ -95,7 +96,7 @@ What would you like to do?
                 let (file_name, file_data) = match get_file_data(false) {
                     Ok(data) => data,
                     Err(e) => {
-                        println!("Error in reading file: {}\nReloading...", e);
+                        println!("\nError in reading file: {}\nReloading...", e);
                         continue;
                     }
                 };
@@ -116,10 +117,12 @@ What would you like to do?
             }
 
             _ => {
-                println!("Exiting...");
+                println!("\nExiting...");
                 break
             }
         }
+
+        println!("----------------------------------------------")
     }
 }
 
@@ -130,8 +133,6 @@ fn get_file_data(binary: bool) -> Result<(String, Vec<u8>), String> {
     io::stdin()
         .read_line(&mut file_name)
         .expect("Failed to read line");
-
-    println!("");
 
     file_name = file_name.trim().into();
 

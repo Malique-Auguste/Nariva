@@ -1,4 +1,4 @@
-PUSH 15
+PUSH 20
 STORE 0
 PUSH 0
 CALL increment
@@ -7,7 +7,7 @@ CALL divisible_3
 DUPLI
 CALL divisible_5
 DUPLI
-CALL self
+CALL output
 DUPLI
 CALL over_initial
 JMP -9
@@ -50,7 +50,7 @@ RETURN
     STORE 2
 RETURN
 
-self:
+output:
     LOAD 1
     PUSH 1
     CMP 0
