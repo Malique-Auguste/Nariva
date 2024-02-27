@@ -54,7 +54,6 @@ This language is assembly like as in it is low level and thus deals with the dir
 - *Jump*
     This allows for jumping to certain points in code if certain criteria are met. Typically the criteria to be met are the results of the cmp opcode. All jump opcodes are followed by a number which indicates how far forward or backward in the code the virtual machine should jump to.
     - **JMP**
-        
         Jump occurs regarless of any conditions.
     - **JE**
         Jump if equal flag is set.
@@ -82,7 +81,7 @@ This language is assembly like as in it is low level and thus deals with the dir
 
 - **Store**
     This allows for data to be written from the stack to one of 8 registers. The specifc register is indicated via the number that follows the opcode.
-
+    
 - **Load**
     This allows for data to be read from a specific register to the stack. The specifc register is indicated via the number that follows the opcode.
 
