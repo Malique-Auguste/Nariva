@@ -3,7 +3,7 @@
 This is a programming language and stack based virtual machine that I have created. 
 
 ### Programming Language 
-##### Documentation
+#### Documentation
 This language is assembly like as in it is low level and thus deals with the direct movement of individual bits. This is done via a series of commands, called opcodes. Below outlines the opcodes of this specific virtual machnine and how they are interpreted: 
 
 - **Illegal**
@@ -113,10 +113,78 @@ This language is assembly like as in it is low level and thus deals with the dir
     
 - **Load**
     
-    This allows for data to be read from a specific register to the stack. The specifc register is indicated via the number that follows the opcode.
+    This allows for data to be read from a specific register to the stack. The specifc register is indicated via the number that follows the opcode.   
+
+### Compiler
+Programs are typically written in human readable text within a .nar file. The compiler converts this human readable text into binary code which is then saved in a .binar file and can be interpreted by the virtual machine. The compilation process is composed of three main parts:
+
+- **Lexer**
+
+    The lexer reads a stream of data (a string of text) from the .nar file and breaks it up into a list of useful chunks. For example,
+        
+        PUSH 10
+        PUSH 7
+        ADDU
+        PRINT 0
+
+    gets broken up into:
+    
+        ["PUSH", 10, "PUSH", 7, "ADDU", "PRINT", 0]
+
+    Note: These "useful chunks" are referred to as lexed tokens.
+
+- **Parser**
+
+    The parser reads a stream of lexed tokens and ensures that they follow certain grammatical rules of the programming language. For example, opcodes such as "push" and "jmp" must be followed by a number and if they don't an error is thrown by the parser. When this process is completed a list of "parsed tokens" are created.
+
+    Additionally the parser resolves function calls. Functions are indicated in .nar files via the following pattern:
+        
+        function_name:
+            inner
+            function
+            code
+            here
+    
+    For example:
+        
+        divisible_3:
+            PUSH 3
+            MODU
+            PUSH 0
+            CMP 0
+            JNE 4
+            PUSH 1
+            STORE 1
+        RETURN
+            PUSH 0
+            STORE 1
+        RETURN
+    
+    Function are, however, called in other parts of text using the call function followed by the function name, for example:
+
+        ...
+        call divisible_3
+        ...
+    
+    To parse function definitions and calls, the parser first makes one pass over the lexed tokens to indentify the position of function definitions in the list and then a second pass to replace all the function calls with that numbered position. 
+    
+    For example, if the function called "divisible_3" is defined at the 30th position in the list, then everywhere where was orginally 
+
+        call divisible_3
+
+    becomes
+
+        call 30
 
     
 
-##### Compilation
+
+- **Generator**
+
+    Finally the generator converts all the parsed tokens into binary text by mapping opcodes onto specific numbers which can be correctly interpreted by the virtual machine. For example when the virtual machine is expecting an opcode and comes across number 1 it halts the program. Thus the gernerator maps "halt" onto number 1. 
+
+    Numbers themselves such as those specific to be pushed onto the stack or that act as function parameters for the different opcodes are broken up into 8 bytes. 
+
+Finally the compiler takes the information output by the generator and writes it to a file which can then be read by the virtual machine.
 
 ### Virtual Machine
